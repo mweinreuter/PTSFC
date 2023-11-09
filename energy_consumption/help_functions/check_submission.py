@@ -4,9 +4,10 @@ import numpy as np
 import warnings
 from datetime import datetime
 
+
 def check_df(df):
     EXPECTED_COLS = ["forecast_date", "target", "horizon", "q0.025", "q0.25",
-                    "q0.5", "q0.75", "q0.975"]
+                     "q0.5", "q0.75", "q0.975"]
     LEN_EXP_COLS = len(EXPECTED_COLS)
 
     # if exclude_weather == True:
@@ -15,18 +16,19 @@ def check_df(df):
     # else:
     TARGETS = ["DAX", "energy", "infections"]
 
-    TARGET_VALS = dict(DAX = [str(i) + " day" for i in (1,2,5,6,7)],
-                    energy = [str(i) + " hour" for i in (36,40,44,60,64,68)],
-                    infections = [str(i) + " week" for i in (0,1,2,3,4)])
+    TARGET_VALS = dict(DAX=[str(i) + " day" for i in (1, 2, 5, 6, 7)],
+                       energy=[str(i) + " hour" for i in (36,
+                                                          40, 44, 60, 64, 68)],
+                       infections=[str(i) + " week" for i in (0, 1, 2, 3, 4)])
 
-    TARGET_LEN = dict(DAX = len(TARGET_VALS["DAX"]),
-                    energy = len(TARGET_VALS["energy"]),
-                    infections = len(TARGET_VALS["infections"])
-                    )
+    TARGET_LEN = dict(DAX=len(TARGET_VALS["DAX"]),
+                      energy=len(TARGET_VALS["energy"]),
+                      infections=len(TARGET_VALS["infections"])
+                      )
 
-    TARGET_PLAUS = dict(DAX = [-20, 20],
-                        energy = [0,250],
-                        infections = [0,9000])
+    TARGET_PLAUS = dict(DAX=[-20, 20],
+                        energy=[0, 250],
+                        infections=[0, 9000])
 
     COLS_QUANTILES = ["q0.025", "q0.25", "q0.5", "q0.75", "q0.975"]
 
@@ -34,11 +36,11 @@ def check_df(df):
     print("---------------------------")
     col_names = df.columns
 
-
     print("Checking the Columns...")
     # Check column length
     if len(col_names) != LEN_EXP_COLS:
-        print("Dataset contains ",len(col_names), "columns. Required are",LEN_EXP_COLS)
+        print("Dataset contains ", len(col_names),
+              "columns. Required are", LEN_EXP_COLS)
         print("Stopping early...")
         sys.exit()
 
@@ -49,7 +51,7 @@ def check_df(df):
         print("Stopping early...")
         sys.exit()
 
-    for i,col in enumerate(EXPECTED_COLS):
+    for i, col in enumerate(EXPECTED_COLS):
         if col == col_names[i]:
             continue
         else:
@@ -62,7 +64,7 @@ def check_df(df):
     print("Checking type of columns...")
     try:
         df["forecast_date"] = pd.to_datetime(df["forecast_date"], format="%Y-%m-%d",
-                                            errors="raise")
+                                             errors="raise")
     except (pd.errors.ParserError, ValueError):
         print("Could not parse Date in format YYYY-MM-DD")
         print("Stopping early...")
@@ -84,7 +86,8 @@ def check_df(df):
 
     for cq in COLS_QUANTILES:
         if pd.to_numeric(df[cq], errors="coerce").isna().any():
-            print("----WARNING: Some elements in",cq,"column are not numeric. This may be fine if you only submit 2 out of 3 targets.")
+            print("----WARNING: Some elements in", cq,
+                  "column are not numeric. This may be fine if you only submit 2 out of 3 targets.")
             print("")
             # print("Stopping early...")
             # sys.exit()
@@ -124,13 +127,15 @@ def check_df(df):
             sys.exit()
 
         if (df[df["target"] == target]["horizon"] != TARGET_VALS[target]).any():
-            print("Target", target, "horizons need to be (in this order):", TARGET_VALS[target])
+            print("Target", target,
+                  "horizons need to be (in this order):", TARGET_VALS[target])
             print("Stopping early...")
             sys.exit()
 
         if (df[df["target"] == target][COLS_QUANTILES] < TARGET_PLAUS[target][0]).any(axis=None) or \
-            (df[df["target"] == target][COLS_QUANTILES] > TARGET_PLAUS[target][1]).any(axis=None):
-            print("----WARNING: Implausible values for",target,"detected. You may want to re-check.")
+                (df[df["target"] == target][COLS_QUANTILES] > TARGET_PLAUS[target][1]).any(axis=None):
+            print("----WARNING: Implausible values for",
+                  target, "detected. You may want to re-check.")
             print("")
             # warnings.warn("Implausible values for "+str(target)+" detected. You may want to re-check them.")
 
@@ -141,16 +146,18 @@ def check_df(df):
 
     if len(ALL_NAN_IDX) != 0:
         NAN_TARGET = df.iloc[ALL_NAN_IDX[0]]["target"]
-        NAN_TARGET_LENS = dict(DAX = 5,
-                            energy = 6,
-                            infections = 5)
+        NAN_TARGET_LENS = dict(DAX=5,
+                               energy=6,
+                               infections=5)
 
         NAN_TARGET_IDX_LIST = df[df["target"] == NAN_TARGET].index
 
-        print("Assume that --",NAN_TARGET,"-- is your NaN-target. Please DOUBLECHECK if this is correct.")
+        print("Assume that --", NAN_TARGET,
+              "-- is your NaN-target. Please DOUBLECHECK if this is correct.")
 
         if len(ALL_NAN_IDX) > NAN_TARGET_LENS[NAN_TARGET]:
-            print("Your dataframe contains more NaNs than entries for target",NAN_TARGET,".")
+            print(
+                "Your dataframe contains more NaNs than entries for target", NAN_TARGET, ".")
             print("Stopping early...")
             sys.exit()
     else:
@@ -167,7 +174,8 @@ def check_df(df):
             sys.exit()
         diffs[0] = 0
         if (diffs < 0).any():
-            print("Predictive quantiles in row",i,"are not ordered correctly (need to be non-decreasing)")
+            print("Predictive quantiles in row", i,
+                  "are not ordered correctly (need to be non-decreasing)")
             print("Stopping early...")
             sys.exit()
 
