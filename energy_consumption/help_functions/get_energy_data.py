@@ -1,30 +1,49 @@
 import pandas as pd
+import numpy as np
+
+import requests
+from datetime import datetime
+from tqdm import tqdm
 
 
-def get_data(file_path):
+def get_data():
 
-    energy_data = (pd.read_csv(file_path,
-                               delimiter=';', encoding='utf-8')
-                   .iloc[:, [0, 1, 3]]
-                   .dropna()
-                   .rename(columns={'Datum': 'date',
-                                    'Anfang': 'beginning',
-                                    'Gesamt (Netzlast) [MWh] Berechnete Auflösungen': 'energy_consumption'}))
+    # get all available time stamps
+    stampsurl = "https://www.smard.de/app/chart_data/410/DE/index_quarterhour.json"
+    response = requests.get(stampsurl)
+    # ignore first 4 years (don't need those in the baseline and speeds the code up a bit)
+    timestamps = list(response.json()["timestamps"])[4*52:]
 
-    # convert data type and measurement unit of energy consumption (in GWh instead of MWh)
-    energy_data = energy_data[~energy_data['energy_consumption'].str.contains(
-        '-')]
-    energy_data['energy_consumption'] = (energy_data['energy_consumption'].str.replace('.', '', regex=False)
-                                         .str.replace(',', '.', regex=False)
-                                         .astype(float) / 1000)
+    col_names = ['date_time', 'energy_consumption']
+    energydata = pd.DataFrame(columns=col_names)
 
-    # Set date_time as row index for time series
-    energy_data['date'] = pd.to_datetime(
-        energy_data['date'], format='%d.%m.%Y')
-    energy_data['beginning'] = pd.to_datetime(
-        energy_data['beginning'], format='%H:%M').dt.time
-    energy_data['date_time'] = energy_data.apply(
-        lambda row: pd.Timestamp.combine(row['date'], row['beginning']), axis=1)
-    energy_data.set_index('date_time', inplace=True)
+    # loop over all available timestamps
+    for stamp in tqdm(timestamps):
 
-    return energy_data
+        dataurl = "https://www.smard.de/app/chart_data/410/DE/410_DE_quarterhour_" + \
+            str(stamp) + ".json"
+        response = requests.get(dataurl)
+        rawdata = response.json()["series"]
+
+        for i in range(len(rawdata)):
+
+            rawdata[i][0] = datetime.fromtimestamp(
+                int(str(rawdata[i][0])[:10])).strftime("%Y-%m-%d %H:%M:%S")
+
+        energydata = pd.concat(
+            [energydata, pd.DataFrame(rawdata, columns=col_names)])
+
+    energydata = energydata.dropna()
+    energydata["date_time"] = pd.to_datetime(energydata.date_time)
+
+    # set date_time as index
+    energydata.set_index("date_time", inplace=True)
+
+    # resample
+    energydata = energydata.resample("1h", label="left").sum()
+
+    # transform MWh in GWh
+    energydata['energy_consumption'] = energydata['energy_consumption'].astype(
+        float)/1000
+
+    return energydata
