@@ -3,13 +3,15 @@ import numpy as np
 
 import statsmodels.api as sm
 
-from energy_consumption.help_functions import get_energy_data, dummy_mapping, get_forecast_timestamps
+from energy_consumption.help_functions import get_energy_data, dummy_mapping, get_forecast_timestamps, create_submission_frame
+
+# ! delete df
 
 
-def get_forecasts_model1(selected_dates):
+def get_ec_forecasts_model1(energydata=None, indexes=[27, 31, 35, 51, 55, 59]):
 
-    # import data
-    energydata = get_energy_data.get_data()
+    if energydata.empty:
+        energydata = get_energy_data.get_data()
 
     # select data since two years
     nrows = len(energydata)-17472
@@ -27,7 +29,7 @@ def get_forecasts_model1(selected_dates):
     y_ec = energydata['energy_consumption']
     X_ec = energydata.drop(
         columns=['energy_consumption'])
-    X_ec = sm.add_constant(X_ec)
+    X_ec = sm.add_constant(X_ec, has_constant="add")
 
     # create dataframe to store forecast quantiles
     energyforecast = get_forecast_timestamps.forecast_timestamps(
@@ -52,7 +54,11 @@ def get_forecasts_model1(selected_dates):
         # Add the forecasts to the energy_forecast DataFrame with a label like 'forecast025'
         energyforecast[f'forecast{q}'] = forecast_temp
 
-    forecasting_results = energyforecast.loc[selected_dates,
-                                             'forecast0.025':'forecast0.975']
+    # get frame with energy forecasts for selected indexes
+    selected_forecasts = energyforecast.loc[energyforecast.index[indexes],
+                                            'forecast0.025':'forecast0.975']
 
-    return (forecasting_results)
+    selected_forecasts_frame = create_submission_frame.get_frame(
+        selected_forecasts)
+
+    return (selected_forecasts_frame)
