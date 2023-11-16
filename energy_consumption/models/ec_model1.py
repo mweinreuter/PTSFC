@@ -5,10 +5,8 @@ import statsmodels.api as sm
 
 from energy_consumption.help_functions import get_energy_data, dummy_mapping, get_forecast_timestamps, create_submission_frame
 
-# ! delete df
 
-
-def get_ec_forecasts_model1(energydata=None, indexes=[27, 31, 35, 51, 55, 59]):
+def get_ec_forecasts_model1(energydata=pd.DataFrame(), indexes=[27, 31, 35, 51, 55, 59]):
 
     if energydata.empty:
         energydata = get_energy_data.get_data()
@@ -54,6 +52,8 @@ def get_ec_forecasts_model1(energydata=None, indexes=[27, 31, 35, 51, 55, 59]):
         # Add the forecasts to the energy_forecast DataFrame with a label like 'forecast025'
         energyforecast[f'forecast{q}'] = forecast_temp
 
+    # delete later
+    print(energyforecast)  # delete!
     # get frame with energy forecasts for selected indexes
     selected_forecasts = energyforecast.loc[energyforecast.index[indexes],
                                             'forecast0.025':'forecast0.975']
