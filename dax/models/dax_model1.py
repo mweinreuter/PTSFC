@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime
 
 from dax.help_functions.get_dax_data import get_data
-from dax.help_functions.compute_return import compute_return_h
+from dax.help_functions.calculate_returns import calculate_returns
 
 
 def get_dax_forecasts_model1(daxdata=pd.DataFrame(), last_t=1000):
@@ -11,9 +11,7 @@ def get_dax_forecasts_model1(daxdata=pd.DataFrame(), last_t=1000):
     if daxdata.empty:
         daxdata = get_data()
         # calculate log returns
-        for i in range(5):
-            daxdata["ret"+str(i+1)
-                    ] = compute_return_h(daxdata["Close"].values, h=i+1)
+        daxdata = calculate_returns(daxdata, lags=5)
 
     # quantile levels
     tau = [.025, .25, .5, .75, .975]
@@ -23,7 +21,7 @@ def get_dax_forecasts_model1(daxdata=pd.DataFrame(), last_t=1000):
     pred_baseline = np.zeros((5, 5))
 
     for i in range(5):
-        ret_str = "ret"+str(i+1)
+        ret_str = 'LogRetLag'+str(i+1)
         # Check if the slicing result is a NumPy array
         sliced_array = daxdata[ret_str].iloc[-last_t:].values
 

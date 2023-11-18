@@ -7,14 +7,9 @@ def most_recent_thursday(df):
 
     # Calculate days to the most recent Thursday
     days_to_thursday = (today.weekday() - 3) % 7
-    recent_thursday = today - timedelta(days=days_to_thursday, hours=today.hour, minutes=today.minute,
-                                        seconds=today.second, microseconds=today.microsecond)
+    recent_thursday = today - timedelta(days=days_to_thursday)
 
-    # Set the time to 12:00 AM
-    most_recent_thursday = recent_thursday.replace(
-        hour=0, minute=0, second=0, microsecond=0)
-
-    return most_recent_thursday
+    return recent_thursday
 
 
 def split_time(df, num_years=0, num_months=0, num_weeks=0, num_days=0, num_hours=0):

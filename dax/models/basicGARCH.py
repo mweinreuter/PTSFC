@@ -9,13 +9,14 @@ from dax.help_functions.get_dax_data import get_data
 from dax.help_functions.calculate_returns import calculate_returns
 
 
-def get_dax_forecasts_basicGARCH():
+def get_dax_forecasts_basicGARCH(daxdata=pd.DataFrame()):
 
-    # import required data
-    daxdata = get_data().iloc[6000:,]
-    daxdata = calculate_returns(daxdata, 1)
-    daxdata = daxdata.loc[:, ['Close', 'CloseLag1',
-                          'RetLag1', 'LogRetLag1']].set_index(daxdata.index.date)
+    # import required data if not given
+    if daxdata.empty:
+        daxdata = get_data().iloc[6000:,]
+        daxdata = calculate_returns(daxdata, 1)
+        daxdata = daxdata.loc[:, ['Close', 'CloseLag1',
+                                  'LogRetLag1']].set_index(daxdata.index.date)
 
     # GARCH(1,1) with mean zero and normal distribution
     model_garch_zero = arch_model(
