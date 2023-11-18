@@ -39,9 +39,13 @@ def evaluate_daxmodel(model, df, last_x=100, years=False, months=False, weeks=Fa
         df_before, df_after = split_time(
             df_before, num_years=years, num_months=months, num_weeks=weeks)  # set to weeks again
         pred = model['function'](df_before)
-        obs = pd.DataFrame({'LogRetLag1': df.loc[pred.index]['LogRetLag1']})
-        merged_df = pd.merge(pred, obs, left_index=True, right_index=True)
 
+        obs = pd.DataFrame(columns=['LogRetLag1'])
+        for index, row in pred.iterrows():
+            if index in df.index:
+                obs.loc[index] = df.loc[index]['LogRetLag1']
+
+        merged_df = pd.merge(pred, obs, left_index=True, right_index=True)
         # Add scores to the merged_df
         for index, row in merged_df.iterrows():
             quantile_preds = row[[
