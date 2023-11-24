@@ -2,11 +2,13 @@ import pandas as pd
 import numpy as np
 
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 from tqdm import tqdm
 
+from evaluation.help_functions.prepare_data import most_recent_wednesday
 
-def get_data():  # to do: fasten
+
+def get_data(set_wed12=True):  # to do: fasten
 
     # get all available time stamps
     stampsurl = "https://www.smard.de/app/chart_data/410/DE/index_quarterhour.json"
@@ -47,31 +49,18 @@ def get_data():  # to do: fasten
     energydata['energy_consumption'] = energydata['energy_consumption'].astype(
         float)/1000
 
-    return set_last_hour(energydata)
-
-
-def set_last_hour(energydata):
-
-    # Find the last timestamp in the DataFrame
-    last_timestamp = energydata.index[-1]
-    last_date = str(last_timestamp.date())
-
-    # Always determine the last observation time to be at 12am
-    last_observation_time = '12:00:00'
-
-    # Find index of the last observation
-    last_observation_datetime = pd.to_datetime(
-        last_date + ' ' + last_observation_time)
-
-    if last_observation_datetime in energydata.index:
-        last_observation_index = energydata.index.get_loc(
-            last_observation_datetime)
+    if set_wed12 == True:
+        return set_last_wed12(energydata)
     else:
-        last_observation_datetime = pd.to_datetime(
-            last_observation_datetime) - timedelta(days=1)
-        last_observation_index = energydata.index.get_loc(
-            last_observation_datetime)
+        return energydata
 
-    energydata = energydata.iloc[:last_observation_index + 1]
 
-    return (energydata)
+def set_last_wed12(energydata):
+
+    # make sure last energy value is on wednesday, 12:00 AM
+    start_date = most_recent_wednesday(energydata)
+
+    # set last timestamp
+    energydata_wed12 = energydata.loc[energydata.index <= start_date]
+
+    return (energydata_wed12)

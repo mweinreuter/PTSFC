@@ -4,7 +4,7 @@ from help_functions.prepare_data import split_time
 from help_functions.calculate_score import evaluate_horizon
 
 
-def evaluate_different_energymodels(models, df, last_x, years=False, months=False, weeks=False):
+def evaluate_different_energymodels(models, df, last_x=100, years=False, months=False, weeks=False):
 
     # Check that exactly one of the boolean parameters is True
     if sum([years, months, weeks]) != 1:
@@ -22,6 +22,7 @@ def evaluate_different_energymodels(models, df, last_x, years=False, months=Fals
             m, df, last_x, years, months, weeks)
 
 
+# requiremend: no missing data
 def evaluate_energymodel(model, df, last_x=100, years=False, months=False, weeks=False):
     '''
     model
@@ -38,10 +39,18 @@ def evaluate_energymodel(model, df, last_x=100, years=False, months=False, weeks
     evaluation = pd.DataFrame()
 
     for w in range(2, last_x):
-        print(f'Iteration {w} of {last_x}')
+        if w % 10 == 0:
+            print(f'Iteration {w} of {last_x}')
         df_before, df_after = split_time(
-            df_before, num_years=years, num_months=months, num_weeks=weeks)  # set to weeks again
-        pred = model['function'](df_before)
+            df_before, num_years=years, num_months=months, num_weeks=weeks)
+
+        if callable(model['function']):
+            pred = model['function'](
+                df_before)
+        else:
+            evaluation = pd.DataFrame()
+            break
+        # pred = model['function'](df_before)
         obs = pd.DataFrame(                                                                                #
             {'energy_consumption': df.loc[pred['date_time']]['energy_consumption']})
         pred = pred.set_index('date_time')
@@ -55,5 +64,8 @@ def evaluate_energymodel(model, df, last_x=100, years=False, months=False, weeks
             score = evaluate_horizon(quantile_preds, observation)
             merged_df.at[index, 'score'] = score
 
+        print(pred.index)  # delete
+
         evaluation = pd.concat([evaluation, merged_df])
+
     return evaluation

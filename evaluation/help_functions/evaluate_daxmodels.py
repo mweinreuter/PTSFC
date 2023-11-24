@@ -36,21 +36,25 @@ def evaluate_daxmodel(model, df, last_x=100, years=False, months=False, weeks=Fa
     evaluation = pd.DataFrame()
 
     for w in range(2, last_x):  # range 1 ausprobieren
+
         df_before, df_after = split_time(
             df_before, num_years=years, num_months=months, num_weeks=weeks)  # set to weeks again
         pred = model['function'](df_before)
 
-        obs = pd.DataFrame(columns=['LogRetLag1'])
+        i = 1
+        obs = pd.DataFrame(columns=['observation'])
         for index, row in pred.iterrows():
-            if index in df.index:
-                obs.loc[index] = df.loc[index]['LogRetLag1']
+            if index in df_after.index:
+                obs.loc[index,
+                        'observation'] = df_after.loc[index][f'LogRetLag{i}']
+            i += 1
 
         merged_df = pd.merge(pred, obs, left_index=True, right_index=True)
         # Add scores to the merged_df
         for index, row in merged_df.iterrows():
             quantile_preds = row[[
                 'q0.025', 'q0.25', 'q0.5', 'q0.75', 'q0.975']]
-            observation = row['LogRetLag1']
+            observation = row['observation']
             score = evaluate_horizon(quantile_preds, observation)
             merged_df.at[index, 'score'] = score
 

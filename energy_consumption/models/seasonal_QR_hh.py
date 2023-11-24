@@ -6,7 +6,7 @@ import statsmodels.api as sm
 from energy_consumption.help_functions import get_energy_data, dummy_mapping, get_forecast_timestamps, create_submission_frame
 
 
-def get_ec_forecasts_model1(energydata=pd.DataFrame(), indexes=[27, 31, 35, 51, 55, 59]):
+def get_seasonal_QR_hourly_holidays(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 79]):
 
     if energydata.empty:
         energydata = get_energy_data.get_data()
@@ -19,9 +19,7 @@ def get_ec_forecasts_model1(energydata=pd.DataFrame(), indexes=[27, 31, 35, 51, 
     energydata = dummy_mapping.get_season_mapping(energydata)
     energydata = dummy_mapping.get_day_mapping(energydata)
     energydata = dummy_mapping.get_hour_mapping(energydata)
-
-    # drop reference dummies
-    energydata = energydata.drop(columns=['summer', 'sunday', 'hour_0'])
+    energydata = dummy_mapping.get_holiday_mapping(energydata)
 
     # quantile regression data
     y_ec = energydata['energy_consumption']
@@ -35,8 +33,7 @@ def get_ec_forecasts_model1(energydata=pd.DataFrame(), indexes=[27, 31, 35, 51, 
     energyforecast = dummy_mapping.get_season_mapping(energyforecast)
     energyforecast = dummy_mapping.get_day_mapping(energyforecast)
     energyforecast = dummy_mapping.get_hour_mapping(energyforecast)
-    energyforecast = energyforecast.drop(
-        columns=['summer', 'sunday', 'hour_0'])
+    energyforecast = dummy_mapping.get_holiday_mapping(energyforecast)
     X_fc = sm.add_constant(energyforecast, has_constant='add')
 
     # model
@@ -52,9 +49,6 @@ def get_ec_forecasts_model1(energydata=pd.DataFrame(), indexes=[27, 31, 35, 51, 
         # Add the forecasts to the energy_forecast DataFrame with a label like 'forecast025'
         energyforecast[f'forecast{q}'] = forecast_temp
 
-    # delete later
-    print(energyforecast)  # delete!
-    # get frame with energy forecasts for selected indexes
     selected_forecasts = energyforecast.loc[energyforecast.index[indexes],
                                             'forecast0.025':'forecast0.975']
 

@@ -6,7 +6,7 @@ from dax.help_functions.get_dax_data import get_data
 from dax.help_functions.calculate_returns import calculate_returns
 
 
-def get_dax_forecasts_model1(daxdata=pd.DataFrame(), last_t=1000):
+def get_dax_forecasts_baseline(daxdata=pd.DataFrame(), last_t=1000):
 
     if daxdata.empty:
         daxdata = get_data()
