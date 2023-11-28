@@ -2,30 +2,19 @@ import pandas as pd
 import numpy as np
 
 from arch import arch_model
-from datetime import timedelta
 
-from evaluation.help_functions.prepare_data import most_recent_thursday, next_working_days
-from dax.help_functions.calculate_returns import calculate_returns
+from evaluation.help_functions.prepare_data import next_working_days
 from dax.help_functions.get_quantiles import get_norm_quantiles_mean
-from dax.help_functions.get_dax_data import get_data
+from dax.help_functions.get_dax_data import get_prepared_data
 
 
 def get_garch_11_ar(daxdata=pd.DataFrame()):
 
     if daxdata.empty:
-        daxdata = get_data().iloc[8000:,]
-        start_date_excl = most_recent_thursday(daxdata) - timedelta(days=1)
-        daxdata = daxdata.loc[daxdata.index <= start_date_excl]
-        date_st = start_date_excl.strftime('%Y-%m-%d')
+        daxdata = get_prepared_data()
 
-        daxdata = calculate_returns(daxdata, 5)
-        daxdata.index = daxdata.index.date
-        daxdata = daxdata.dropna()
-    else:
-        date_st = daxdata.index[-1].strftime('%Y-%m-%d')
-
-    quantiles = garch11_ars(daxdata)
-
+    date_st = daxdata.index[-1].strftime('%Y-%m-%d')
+    quantiles = garch11s_ar(daxdata)
     quantiles.insert(0, 'forecast_date', date_st)
     quantiles.insert(1, 'target', 'DAX')
     quantiles.insert(2, "horizon", [str(i) + " day" for i in (1, 2, 5, 6, 7)])
@@ -34,7 +23,7 @@ def get_garch_11_ar(daxdata=pd.DataFrame()):
 
 
 # Runs GARCH(1,1) for each horizon
-def garch11_ars(df):
+def garch11s_ar(df):
 
     horizon_estimates = {}
 

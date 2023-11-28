@@ -2,16 +2,13 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-from dax.help_functions.get_dax_data import get_data
-from dax.help_functions.calculate_returns import calculate_returns
+from dax.help_functions.get_dax_data import get_prepared_data
 
 
 def get_dax_forecasts_baseline(daxdata=pd.DataFrame(), last_t=1000):
 
     if daxdata.empty:
-        daxdata = get_data()
-        # calculate log returns
-        daxdata = calculate_returns(daxdata, lags=5)
+        daxdata = get_prepared_data()
 
     # quantile levels
     tau = [.025, .25, .5, .75, .975]

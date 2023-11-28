@@ -2,29 +2,19 @@ import pandas as pd
 import numpy as np
 
 from arch import arch_model
-from datetime import timedelta
 
-from evaluation.help_functions.prepare_data import most_recent_thursday, next_working_days
-from dax.help_functions.calculate_returns import calculate_returns
+from evaluation.help_functions.prepare_data import next_working_days
 from dax.help_functions.get_quantiles import get_norm_quantiles
-from dax.help_functions.get_dax_data import get_data
+from dax.help_functions.get_dax_data import get_prepared_data
 
 
 def get_garch_11_norm(daxdata=pd.DataFrame()):
 
     if daxdata.empty:
-        daxdata = get_data().iloc[8000:,]
-        start_date_excl = most_recent_thursday(daxdata) - timedelta(days=1)
-        daxdata = daxdata.loc[daxdata.index <= start_date_excl]
-        date_st = start_date_excl.strftime('%Y-%m-%d')
+        daxdata = get_prepared_data()
 
-        daxdata = calculate_returns(daxdata, 5)
-        daxdata.index = daxdata.index.date
-        daxdata = daxdata.dropna()
-    else:
-        date_st = daxdata.index[-1].strftime('%Y-%m-%d')
-
-    quantiles = garch11s(daxdata)
+    date_st = daxdata.index[-1].strftime('%Y-%m-%d')
+    quantiles = garch11s_norm(daxdata)
 
     quantiles.insert(0, 'forecast_date', date_st)
     quantiles.insert(1, 'target', 'DAX')
@@ -34,10 +24,10 @@ def get_garch_11_norm(daxdata=pd.DataFrame()):
 
 
 # Runs GARCH(1,1) for each horizon
-def garch11s(df):
+def garch11s_norm(df):
 
     # predict variance for each horizon via garch11
-    variances = [garch11(df[f'LogRetLag{h}'], h) for h in range(1, 6)]
+    variances = [garch11_norm(df[f'LogRetLag{h}'], h) for h in range(1, 6)]
 
     # get quantiles via normal distribution and predicted variances
     quantiles = [get_norm_quantiles(v) for v in variances]
@@ -52,7 +42,7 @@ def garch11s(df):
     return quantile_df
 
 
-def garch11(df, horizon):
+def garch11_norm(df, horizon):
 
     model = arch_model(df, mean='zero', p=1, q=1)
     model_fit = model.fit()
