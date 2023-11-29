@@ -3,6 +3,16 @@ import numpy as np
 import holidays
 
 
+def get_mappings(energy_df):
+    return (
+        energy_df
+        .pipe(get_season_mapping)
+        .pipe(get_day_mapping)
+        .pipe(get_kmeans_mapping)
+        .pipe(get_holiday_mapping)
+    )
+
+
 def get_season_mapping(energy_df):
 
     energy_df['month'] = energy_df.index.month
@@ -57,15 +67,19 @@ def get_hour_mapping(data_df):
     return (data_df)
 
 
-def get_time_mapping(energy_df):
+def get_kmeans_mapping(energy_df):
 
     energy_df['hour'] = energy_df.index.hour
 
-    # keep very low consumption as base
+    # keep very low consumption as base --> 'cluster0': [0,5,23]
     hour_mapping = {
-        'lc': [6, 22, 23],
-        'mc': [7, 20, 21],
-        'hc': [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+        'cluster1': [13],
+        'cluster2': [21],
+        'cluster3': [1, 2, 3, 4],
+        'cluster4': [8, 14, 15, 16, 17, 18, 19],
+        'cluster5': [6, 22],
+        'cluster6': [7, 20],
+        'cluster7': [10, 11, 12]
     }
 
     # Create dummy variables for each consumption type

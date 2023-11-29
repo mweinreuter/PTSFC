@@ -6,16 +6,17 @@ from datetime import datetime
 from tqdm import tqdm
 
 from evaluation.help_functions.prepare_data import most_recent_wednesday
+from energy_consumption.help_functions import handle_outstanding_dp
 
 
-def get_data(set_wed12=True):  # to do: fasten
+def get_data(num_years=7, set_wed=True, wednesday_morning=False):  # to do: fasten
 
     # get all available time stamps
     stampsurl = "https://www.smard.de/app/chart_data/410/DE/index_quarterhour.json"
     response = requests.get(stampsurl)
     # ignore first 4 years (don't need those in the baseline and speeds the code up a bit)
     timestamps = list(response.json()["timestamps"])[
-        7*52:]
+        num_years*52:]
 
     col_names = ['date_time', 'energy_consumption']
     energydata = pd.DataFrame(columns=col_names)
@@ -49,18 +50,20 @@ def get_data(set_wed12=True):  # to do: fasten
     energydata['energy_consumption'] = energydata['energy_consumption'].astype(
         float)/1000
 
-    if set_wed12 == True:
-        return set_last_wed12(energydata)
+    energydata = handle_outstanding_dp.impute_outstanding_dp(energydata)
+
+    if set_wed == True:
+        return set_last_wed(energydata, wednesday_morning=wednesday_morning)
     else:
         return energydata
 
 
-def set_last_wed12(energydata):
+def set_last_wed(energydata, wednesday_morning):
 
     # make sure last energy value is on wednesday, 12:00 AM
-    start_date = most_recent_wednesday(energydata)
+    start_date = most_recent_wednesday(energydata, wednesday_morning)
 
     # set last timestamp
-    energydata_wed12 = energydata.loc[energydata.index <= start_date]
+    energydata_wed = energydata.loc[energydata.index <= start_date].copy()
 
-    return (energydata_wed12)
+    return (energydata_wed)

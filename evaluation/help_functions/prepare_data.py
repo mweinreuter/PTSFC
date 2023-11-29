@@ -29,7 +29,7 @@ def split_time(df, num_years=0, num_months=0, num_weeks=0, num_days=0, num_hours
     return df_b, df_a
 
 
-def most_recent_wednesday(df):
+def most_recent_wednesday(df, wednesday_morning=False):
 
     today = df.index.max()
 
@@ -38,6 +38,11 @@ def most_recent_wednesday(df):
     recent_wednesday = today - \
         timedelta(days=days_to_wednesday,
                   hours=today.hour, minutes=today.minute)
+
+    if wednesday_morning == True:
+        recent_wednesday = today - \
+            timedelta(days=7,
+                      hours=today.hour, minutes=today.minute)
 
     # set time to 12:00 am
     most_recent_wednesday = recent_wednesday.replace(
