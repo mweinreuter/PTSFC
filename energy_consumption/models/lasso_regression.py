@@ -9,7 +9,8 @@ from sklearn.metrics import mean_squared_error
 from energy_consumption.help_functions import get_energy_data, dummy_mapping, get_forecast_timestamps, lasso_functions, create_submission_frame
 
 
-def get_lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 79]):
+def get_lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 79],
+                        quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100):
 
     if energydata.empty:
         energydata = get_energy_data.get_data()
@@ -17,23 +18,23 @@ def get_lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 
     # get dummies
     energydata = dummy_mapping.get_mappings(energydata)
 
-    # split data
-    y_ec = energydata['energy_consumption']
-    X_ec = energydata.drop(
+    # split data to get observations
+    y_obs = energydata['energy_consumption']
+    X_obs = energydata.drop(
         columns=['energy_consumption'])
-    X_ec = sm.add_constant(X_ec, has_constant="add")
+    X_obs = sm.add_constant(X_obs, has_constant="add")
 
     # include interaction terms
     poly_input = PolynomialFeatures(interaction_only=True, include_bias=False)
-    X_interaction = poly_input.fit_transform(X_ec)
+    X_interaction = poly_input.fit_transform(X_obs)
 
     # fit Lasso Regression
     lasso = Lasso(alpha=0.001)
-    lasso.fit(X_interaction, y_ec)
+    lasso.fit(X_interaction, y_obs)
 
     # create dataframe to store forecast quantiles
     X_fc = get_forecast_timestamps.forecast_timestamps(
-        energydata.index[-1])
+        energydata.index[-1], periods=periods)
     X_fc = dummy_mapping.get_mappings(X_fc)
     X_fc = sm.add_constant(X_fc, has_constant='add')
     poly_forecast = PolynomialFeatures(
@@ -41,28 +42,38 @@ def get_lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 
     X_fc_interaction = poly_forecast.fit_transform(X_fc)
 
     # estimate forecast means
-    y_pred = lasso.predict(X_fc_interaction)
-    selected_forecasts = y_pred[indexes]
+    mean_est = lasso.predict(X_fc_interaction)[indexes]
 
     # estimate forecast stds
-    pred_historical = lasso.predict(X_interaction)
-    model_variance_est = mean_squared_error(
-        y_ec, pred_historical)
+    mean_est_hist = lasso.predict(X_interaction)
+    variance_est = mean_squared_error(
+        y_obs, mean_est_hist)
+    indexes_shiftforw = [index+1 for index in indexes]
     forecast_std = np.array([lasso_functions.estimate_forecast_std(
-        model_variance_est, horizon) for horizon in [48, 52, 56, 72, 76, 80]])
+        variance_est, horizon) for horizon in indexes_shiftforw])
 
     # estimate quantile forecasts
     quantile_forecasts = lasso_functions.get_quantiles(
-        selected_forecasts, forecast_std)
+        mean_est, forecast_std, quantiles)
 
-    forecast_frame = create_submission_frame.get_frame(
-        quantile_forecasts)
-    forecast_frame = forecast_frame.drop(columns={'index'})
+    # return quantile forecasts in terms of absolute evaluation
+    abs_eval = len(quantiles) != 6
+    if abs_eval == True:
+        horizon = pd.date_range(start=energydata.index[-1] + pd.DateOffset(
+            hours=1), periods=periods, freq='H')
+        quantile_forecasts.insert(
+            0, 'date_time', [horizon[i] for i in indexes])
 
-    # set horizon for the next 5 days
-    horizon = pd.date_range(start=energydata.index[-1] + pd.DateOffset(
-        hours=1), periods=90, freq='H')
-    forecast_frame.insert(
-        0, 'date_time', [horizon[i] for i in [47, 51, 55, 71, 75, 79]])
+        return quantile_forecasts
 
-    return (forecast_frame)
+    # else: create submission frame
+    else:
+        forecast_frame = create_submission_frame.get_frame(
+            quantile_forecasts, indexes)
+        forecast_frame = forecast_frame.drop(columns={'index'})
+        horizon = pd.date_range(start=energydata.index[-1] + pd.DateOffset(
+            hours=1), periods=periods, freq='H')
+        forecast_frame.insert(
+            0, 'date_time', [horizon[i] for i in indexes])
+
+        return (forecast_frame)

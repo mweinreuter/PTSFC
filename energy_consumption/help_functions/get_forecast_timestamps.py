@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def forecast_timestamps(last_ts, periods=120):
+def forecast_timestamps(last_ts, periods=100):
 
     # set horizon for the next 5 days
     horizon = pd.date_range(start=last_ts + pd.DateOffset(

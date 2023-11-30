@@ -1,12 +1,16 @@
 import pandas as pd
+import numpy as np
 from datetime import datetime
 
 
-def get_frame(forecast_results):
+def get_frame(forecast_results, indexes=[47, 51, 55, 71, 75, 79]):
 
     date_st = (datetime.today().strftime('%Y-%m-%d'))
-
-    hours = ['36 hour', '40 hour', '44 hour', '60 hour', '64 hour', '68 hour']
+    if len(indexes) == 6:
+        hours = ['36 hour', '40 hour', '44 hour',
+                 '60 hour', '64 hour', '68 hour']
+    else:
+        hours = np.nan
 
     df_sub_ec = pd.DataFrame({
         "forecast_date": date_st,
