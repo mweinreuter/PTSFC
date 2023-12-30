@@ -5,9 +5,9 @@ from energy_consumption.help_functions.get_energy_data import get_data
 from energy_consumption.models.combination.combine_models import get_combined_models
 
 # make sure that required models are imported
-from energy_consumption.models.regression_models.QR_mappings_interactions import get_QR_mappings_interactions
-from energy_consumption.models.regression_models.lasso_regression import get_lasso_forecasts
-from energy_consumption.models.regression_models.seasonal_QR_hh import get_seasonal_QR_hourly_holidays
+from energy_consumption.models.time_series_models.QR_mappings_interactions import get_QR_mappings_interactions
+from energy_consumption.models.time_series_models.lasso_regression import get_lasso_forecasts
+from energy_consumption.models.time_series_models.seasonal_QR_hh import get_seasonal_QR_hourly_holidays
 
 
 def get_combined_DEMO(energydata=pd.DataFrame, wednesday_morning=False):
