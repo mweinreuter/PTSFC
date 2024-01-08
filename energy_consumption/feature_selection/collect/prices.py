@@ -6,7 +6,7 @@ import numpy as np
 
 def get_energy_prices():
     energyprices = pd.read_csv(
-        'C:/Users/Maria/Documents/Studium/Pyhton Projekte/PTSFC/energy_consumption/energy_prices.csv')
+        'C:/Users/Maria/Documents/Studium/Pyhton Projekte/PTSFC/energy_consumption/feature_selection/data/energy_prices.csv')
 
     energyprices['date'] = energyprices['date_time'].str.split(';').str[0]
     energyprices['date'] = pd.to_datetime(

@@ -10,13 +10,11 @@ from energy_consumption.help_functions import handle_outstanding_dp
 
 
 def get_data(num_years=7, set_wed=True, wednesday_morning=False):  # to do: fasten
-
     # get all available time stamps
     stampsurl = "https://www.smard.de/app/chart_data/410/DE/index_quarterhour.json"
     response = requests.get(stampsurl)
     # ignore first 4 years (don't need those in the baseline and speeds the code up a bit)
-    timestamps = list(response.json()["timestamps"])[
-        -num_years*52:]
+    timestamps = list(response.json()["timestamps"])[-int(num_years*52):]
 
     col_names = ['date_time', 'energy_consumption']
     energydata = pd.DataFrame(columns=col_names)

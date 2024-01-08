@@ -5,7 +5,7 @@ import numpy as np
 def merge_production_indexes(energydata):
 
     productionindexes = pd.read_csv(
-        'C:/Users/Maria/Documents/Studium/Pyhton Projekte/PTSFC/energy_consumption/production_index.csv')
+        'C:/Users/Maria/Documents/Studium/Pyhton Projekte/PTSFC/energy_consumption/feature_selection/data/production_index.csv')
     productionindexes = productionindexes.drop(columns=['month'])
 
     # calculate mean of production indexes for each year in each half

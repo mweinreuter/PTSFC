@@ -10,7 +10,7 @@ import numpy as np
 
 def get_hist_weather_data_erfurt():
     historicalweather = pd.read_csv(
-        'C:/Users/Maria/Documents/Studium/Pyhton Projekte/PTSFC/energy_consumption/historical_weather_data.csv')
+        'C:/Users/Maria/Documents/Studium/Pyhton Projekte/PTSFC/energy_consumption/feature_selection/data/historical_weather_data.csv')
     historicalweather['date'] = pd.to_datetime(
         historicalweather['date'], format='%m/%d/%Y')
     return historicalweather[['date', 'tavg', 'wspd']]
