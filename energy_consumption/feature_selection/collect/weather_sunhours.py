@@ -10,6 +10,7 @@ import datetime
 
 
 def calculate_sun_hours(energydata):
+
     start_date = energydata.index.min()
     end_date = energydata.index.max()
 
@@ -35,7 +36,7 @@ def calculate_sun_hours(energydata):
         sunset = ephem.localtime(observer.next_setting(sun))
 
         # Calculate sun hours and append to the list
-        sun_hours = (sunset - sunrise).total_seconds() / 3600.0
+        sun_hours = (sunset - sunrise).seconds/(60*60)
         sun_data.append({'date': current_date, 'sun_hours': sun_hours})
 
         # Move to the next day
@@ -44,8 +45,6 @@ def calculate_sun_hours(energydata):
     sun_df = pd.DataFrame(sun_data)
 
     return sun_df
-
-# merge with energydata dataframe
 
 
 def ec_sun_hours_merge(energydata, sun_df=pd.DataFrame):
@@ -57,7 +56,7 @@ def ec_sun_hours_merge(energydata, sun_df=pd.DataFrame):
     energydata = energydata.reset_index()
 
     # merge data
-    energy_merged = pd.merge(sun_df, energydata, how='left', on='date').set_index(
+    energy_merged = pd.merge(energydata, sun_df, how='left', on='date').set_index(
         'date_time').drop(columns={'date'})
 
     return (energy_merged)

@@ -5,7 +5,8 @@ import statsmodels.api as sm
 
 from sklearn.preprocessing import PolynomialFeatures
 
-from energy_consumption.help_functions import get_energy_data, dummy_mapping, handle_outstanding_dp, get_forecast_timestamps, create_submission_frame
+from energy_consumption.help_functions import get_energy_data, dummy_mapping, get_forecast_timestamps, create_submission_frame
+from old_models import handle_outstanding_dp
 
 # proper time mapping and deletion of outstanding data points
 # no need to adjust day and season mapping (vizualisations sufficient)

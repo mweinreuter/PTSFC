@@ -6,7 +6,7 @@ from datetime import datetime
 from tqdm import tqdm
 
 from evaluation.help_functions.prepare_data import most_recent_wednesday
-from energy_consumption.help_functions import handle_outstanding_dp
+from old_models import handle_outstanding_dp
 
 
 def get_data(num_years=7, set_wed=True, wednesday_morning=False):  # to do: fasten

@@ -20,7 +20,7 @@ def get_energy_and_features(energydata=pd.DataFrame):
                   .pipe(dummy_mapping.get_mappings)
                   .pipe(political_instability.ec_dax_merge)
                   .pipe(weather_sunhours.ec_sun_hours_merge)
-                  # .pipe(weather_tempandwind.ec_weather_merge)
+                  .pipe(weather_tempandwind.ec_weather_merge)
                   .pipe(production_index.merge_production_indexes)
                   .pipe(population.get_population)
                   )

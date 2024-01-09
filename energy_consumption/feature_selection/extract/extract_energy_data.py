@@ -6,7 +6,7 @@ from datetime import datetime
 from tqdm import tqdm
 
 from evaluation.help_functions.prepare_data import most_recent_wednesday
-from energy_consumption.help_functions import handle_outstanding_dp
+from energy_consumption.feature_selection.clean.impute_outliers import impute_outliers
 
 
 def get_data(num_years=7, set_wed=True, wednesday_morning=False):  # to do: fasten
@@ -48,7 +48,7 @@ def get_data(num_years=7, set_wed=True, wednesday_morning=False):  # to do: fast
     energydata['energy_consumption'] = energydata['energy_consumption'].astype(
         float)/1000
 
-    energydata = handle_outstanding_dp.impute_outstanding_dp(energydata)
+    energydata = impute_outliers(energydata)
 
     if set_wed == True:
         return set_last_wed(energydata, wednesday_morning=wednesday_morning)

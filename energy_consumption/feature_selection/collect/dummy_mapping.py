@@ -9,8 +9,18 @@ def get_mappings(energy_df):
     return (
         energy_df
         .pipe(get_season_mapping)
+        .pipe(get_workday_mapping)
+        .pipe(get_kmeans_hour_mapping)
+        .pipe(get_holiday_mapping_advanced)
+    )
+
+
+def get_mappings_advanced(energy_df):
+    return (
+        energy_df
+        .pipe(get_season_mapping)
         .pipe(get_day_mapping)
-        .pipe(get_kmeans_mapping)
+        .pipe(get_hour_mapping)
         .pipe(get_holiday_mapping_advanced)
     )
 
@@ -39,7 +49,7 @@ def get_season_mapping(energy_df):
     return (energy_df)
 
 
-def get_day_mapping(energy_df):
+def get_workday_mapping(energy_df):
 
     energy_df['weekday'] = energy_df.index.weekday
     energy_df['saturday'] = energy_df['weekday'].apply(
@@ -51,17 +61,25 @@ def get_day_mapping(energy_df):
     return energy_df
 
 
-def get_hour_mapping(data_df):
+def get_day_mapping(energy_df):
 
-    data_df.loc[:, 'hour'] = data_df.index.hour
+    energy_df.loc[:, 'weekday'] = energy_df.index.weekday
+    energy_df = pd.get_dummies(
+        energy_df, columns=['weekday'], prefix=['day'], dtype=int, drop_first=True)
 
-    data_df = pd.get_dummies(
-        data_df, columns=['hour'], prefix=['hour'], dtype=int, drop_first=True)
-
-    return (data_df)
+    return energy_df
 
 
-def get_kmeans_mapping(energy_df):
+def get_hour_mapping(energy_df):
+
+    energy_df.loc[:, 'hour'] = energy_df.index.hour
+    energy_df = pd.get_dummies(
+        energy_df, columns=['hour'], prefix=['hour'], dtype=int, drop_first=True)
+
+    return (energy_df)
+
+
+def get_kmeans_hour_mapping(energy_df):
 
     energy_df['hour'] = energy_df.index.hour
 
@@ -104,6 +122,7 @@ def get_holiday_mapping(energy_df):
 
 def get_holiday_mapping_advanced(energy_df):
     """includes bridge days"""
+
     energy_df['timestamp'] = energy_df.index
 
     # Create a custom holidays object that includes 31-12 as a holiday

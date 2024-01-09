@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-# monthly energy prices
+# monthly energy prices --> one lag necesary due to insufficient data
 
 
 def get_energy_prices():
@@ -19,7 +19,12 @@ def get_energy_prices():
     energyprices = energyprices.drop(columns=['date_time']).rename(
         columns={'Unnamed: 1': 'price_mean_monthly'})
 
-    return energyprices
+    # take log --> prices
+    energyprices['log_price_pm'] = energyprices['price_mean_monthly'].apply(
+        lambda x: np.log1p(x))
+    energyprices['log_price_pm_lag1'] = energyprices['log_price_pm'].shift(1)
+
+    return energyprices.drop(columns='price_mean_monthly')
 
 
 def add_energy_prices(energydata, energyprices=None):
