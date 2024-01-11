@@ -1,18 +1,15 @@
-# finished
-
-import numpy as np
 import pandas as pd
 
 import ephem
 import datetime
 
-# calculate daily sun hours
-
 
 def calculate_sun_hours(energydata):
 
     start_date = energydata.index.min()
-    end_date = energydata.index.max()
+    print(start_date)
+    end_date = energydata.index.max() + datetime.timedelta(days=1)
+    print(end_date)
 
     # central point in Germany
     latitude = 50.1109
@@ -24,7 +21,7 @@ def calculate_sun_hours(energydata):
 
     sun = ephem.Sun()
 
-    date_format = "%Y-%m-%d %H:%M:%S"
+    date_format = "%Y-%m-%d"
     current_date = start_date
 
     # Create an empty DataFrame with columns
@@ -37,26 +34,26 @@ def calculate_sun_hours(energydata):
 
         # Calculate sun hours and append to the list
         sun_hours = (sunset - sunrise).seconds/(60*60)
-        sun_data.append({'date': current_date, 'sun_hours': sun_hours})
+        sun_data.append({'date_time': current_date, 'sun_hours': sun_hours})
 
         # Move to the next day
         current_date += datetime.timedelta(days=1)
 
-    sun_df = pd.DataFrame(sun_data)
+    sun_df = pd.DataFrame(sun_data).set_index('date_time')
+    sun_df['date'] = pd.to_datetime(sun_df.index.date)
 
     return sun_df
 
 
-def ec_sun_hours_merge(energydata, sun_df=pd.DataFrame):
+def ec_sun_hours_merge(energydata):
 
-    if sun_df.empty:
-        sun_df = calculate_sun_hours(energydata)
+    sun_df = calculate_sun_hours(energydata)
 
     energydata['date'] = pd.to_datetime(energydata.index.date)
     energydata = energydata.reset_index()
 
     # merge data
-    energy_merged = pd.merge(energydata, sun_df, how='left', on='date').set_index(
+    energy_merged = pd.merge(energydata, sun_df, how='left', left_on='date', right_on='date').set_index(
         'date_time').drop(columns={'date'})
 
     return (energy_merged)

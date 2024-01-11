@@ -6,7 +6,7 @@ from scipy.stats import norm
 from datetime import datetime
 
 from energy_consumption.feature_selection.extract.extract_SARIMAX_features import get_energy_and_SARIMAX_features
-from energy_consumption.help_functions.get_SARIMA_residuals import get_residuals
+from energy_consumption.models.SARIMAX.get_SARIMA_residuals import get_residuals
 
 
 def get_SARIMAX_forecasts(energydata=pd.DataFrame, submission=True, periods=100, quantiles=[0.025, 0.25, 0.5, 0.75, 0.975]):

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from energy_consumption.help_functions.get_energy_data import get_data
+from energy_consumption.feature_selection.extract.extract_energy_data import get_data
 
 
 def get_combined_models(models, energydata=pd.DataFrame, wednesday_morning=False):
