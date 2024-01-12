@@ -25,6 +25,14 @@ def get_mappings_advanced(energy_df):
     )
 
 
+def get_mappings_baseline(energy_df):
+    return (
+        energy_df
+        .pipe(get_hour_mapping)
+        .pipe(get_month_mapping)
+    )
+
+
 def get_season_mapping(energy_df):
 
     energy_df['month'] = energy_df.index.month
@@ -76,7 +84,25 @@ def get_hour_mapping(energy_df):
     energy_df = pd.get_dummies(
         energy_df, columns=['hour'], prefix=['hour'], dtype=int, drop_first=True)
 
-    return (energy_df)
+    return energy_df
+
+
+def get_month_mapping(energy_df):
+
+    energy_df.loc[:, 'month'] = energy_df.index.month
+    energy_df = pd.get_dummies(
+        energy_df, columns=['month'], prefix=['month'], dtype=int, drop_first=True)
+
+    return energy_df
+
+
+def get_year_mapping(energy_df):
+
+    energy_df.loc[:, 'year'] = energy_df.index.year
+    energy_df = pd.get_dummies(
+        energy_df, columns=['year'], prefix=['year'], dtype=int, drop_first=True)
+
+    return energy_df
 
 
 def get_kmeans_hour_mapping(energy_df):

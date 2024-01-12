@@ -55,7 +55,6 @@ def get_energy_and_features(energydata=np.nan, train=False, lasso=False, quantRe
                       .pipe(weather_sunhours.ec_sun_hours_merge)
                       .pipe(weather_tempandwind.ec_weather_merge)
                       .pipe(production_index.merge_production_indexes)[0]
-                      # .pipe(prices.add_energy_prices)
                       .pipe(population.get_population)
                       )
         energydata = energydata.drop(
@@ -77,7 +76,7 @@ def get_energy_and_features(energydata=np.nan, train=False, lasso=False, quantRe
     return energydata
 
 
-def get_energy_and_standardized_features(energydata=np.nan, lasso=True):
+def get_energy_and_standardized_features(energydata=np.nan, lasso=False, advanced=False):
 
     if type(energydata) == float:
         energydata = pd.read_csv(
@@ -98,7 +97,18 @@ def get_energy_and_standardized_features(energydata=np.nan, lasso=True):
                       )
         energydata = energydata.drop(
             columns=['close_weekly', 'volatility_weekly']).dropna(subset='abs_log_ret_weekly')
-        print(energydata.head())
+
+    if advanced == True:
+        energydata = (energydata
+                      .pipe(dummy_mapping.get_mappings_advanced)
+                      .pipe(political_instability.ec_dax_merge)
+                      .pipe(weather_sunhours.ec_sun_hours_merge)
+                      .pipe(weather_tempandwind.ec_weather_merge)
+                      .pipe(production_index.merge_production_indexes)[0]
+                      .pipe(population.get_population)
+                      )
+        energydata = energydata.drop(
+            columns=['close_weekly', 'volatility_weekly']).dropna(subset='abs_log_ret_weekly')
 
     scaler = StandardScaler()
     # check if energydata only contains predictors or target as well
