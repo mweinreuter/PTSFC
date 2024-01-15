@@ -1,44 +1,61 @@
 import numpy as np
 import pandas as pd
 
-from energy_consumption.help_functions.get_energy_data import get_data
+from energy_consumption.feature_selection.extract import extract_energy_data
 from energy_consumption.models.combination.combine_models import get_combined_models
 
-# make sure that required models are imported
-from energy_consumption.models.time_series_models.QR_mappings_interactions import get_QR_mappings_interactions
+# import required models
+from energy_consumption.models.lasso.lasso import get_Lasso_forecasts
 from energy_consumption.models.quantreg.quantreg import get_QuantReg_forecasts
-from energy_consumption.models.time_series_models.seasonal_QR_hh import get_seasonal_QR_hourly_holidays
+from energy_consumption.models.baseline import get_baseline_forecasts
+from energy_consumption.models.knn.knn import get_KNNRegression_forecasts
+from energy_consumption.models.xgboost.XGBoost import get_XGBoost_forecasts
 
 
-def get_combined_DEMO(energydata=pd.DataFrame, wednesday_morning=False):
+def get_combined_DEMO(energydata=np.nan):
 
-    if energydata.empty:
-        energydata = get_data(wednesday_morning=wednesday_morning)
+    if type(energydata) == float:
+        # use derived optimum for number of years
+        energydata = extract_energy_data.get_data(num_years=7)
 
     # make sure to import energydata before
-    model_km = {
-        "name": "km",
-        "function": get_QR_mappings_interactions,
+    lasso = {
+        "name": "lasso",
+        "function": get_Lasso_forecasts,
         "horizon_integration": [True, True, True, False, False, False],
         "weights": [1/3, 1/3, 1/3, 1/3, 1/3, 1/3]
     }
 
-    model_QuantReg = {
-        "name": "QuantReg",
+    quantReg = {
+        "name": "quantile regression",
         "function": get_QuantReg_forecasts,
         "horizon_integration": [True, True, True, True, True, True],
         "weights": [1/3, 1/3, 1/3, 1/3, 1/3, 1/3]
     }
 
-    model_disaggregated = {
-        "name": "disagg",
-        "function": get_seasonal_QR_hourly_holidays,
+    baseline = {
+        "name": "baseline",
+        "function": get_baseline_forecasts,
         "horizon_integration": [False, False, False, True, True, True],
         "weights": [1/3, 1/3, 1/3, 1/3, 1/3, 1/3]
     }
 
-    models = [model_km, model_QuantReg, model_disaggregated]
+    knn = {
+        "name": "KNNRegression",
+        "function": get_KNNRegression_forecasts,
+        "horizon_integration": [False, False, False, True, True, True],
+        "weights": [1/3, 1/3, 1/3, 1/3, 1/3, 1/3]
+    }
+
+    XGBoost = {
+        'name': 'xgboost',
+        'function': get_XGBoost_forecasts,
+        "horizon_integration": [False, False, False, True, True, True],
+        "weights": [1/3, 1/3, 1/3, 1/3, 1/3, 1/3]
+    }
+
+    models = [lasso, quantReg, baseline, knn, XGBoost]
     combined_model = get_combined_models(
-        models, energydata, wednesday_morning=True)
+        models, energydata)
 
     return combined_model

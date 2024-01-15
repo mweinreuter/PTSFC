@@ -4,16 +4,13 @@ import pandas as pd
 from energy_consumption.feature_selection.extract.extract_energy_data import get_data
 
 
-def get_combined_models(models, energydata=pd.DataFrame, wednesday_morning=False):
+def get_combined_models(models, energydata):
     """
     list of models, each model 
-    contains dataframe of forecasting results, 
-    list of boolean values of each horizon 
-    weights, if boolean value is true 
+    *   contains dataframe of forecasting results, 
+    *    list of boolean values of each horizon 
+    *    weights, if boolean value is true 
     """
-
-    if energydata.empty:
-        energydata = get_data(wednesday_morning=wednesday_morning)
 
     # calculate forecasts
     forecasts = {}

@@ -1,16 +1,22 @@
 import pandas as pd
 import numpy as np
 
-import statsmodels.api as sm
-from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import GradientBoostingRegressor
 
 from energy_consumption.feature_selection.extract import extract_energy_data, extract_all_features
 from energy_consumption.help_functions.drop_years import drop_years
-from energy_consumption.models.knn.get_quantiles import get_quantiles
 from energy_consumption.help_functions import get_forecast_timestamps, create_submission_frame
 
+optimized_params = dict(
+    learning_rate=0.01,
+    n_estimators=300,
+    max_depth=4,
+    min_samples_leaf=13,
+    min_samples_split=11,
+)
 
-def get_KNNRegression_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100):
+
+def get_XGBoost_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100):
 
     if type(energydata) == float:
         # use derived optimum for number of years
@@ -31,19 +37,16 @@ def get_KNNRegression_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 
 
     X, X_pred = drop_years(X, X_pred)
 
-    # fit KNNRegression with best k
-    knn_model = KNeighborsRegressor(n_neighbors=11, weights='distance')
+    quantile_df = pd.DataFrame()
+    for alpha in [0.025, 0.25, 0.5, 0.75, 0.975]:
+        name = f'q{alpha}'
+        gbr = GradientBoostingRegressor(
+            loss="quantile", alpha=alpha, **optimized_params)
+        quantile_model = gbr.fit(X, y)
+        y_pred = quantile_model.predict(X_pred)
+        quantile_df[name] = y_pred
 
-    # Fit the model on the scaled data
-    knn_model.fit(X, y)
-
-    # estimate forecast mean
-    mean_est = knn_model.predict(X_pred)
-    neighbor_distances, neighbor_indizes = knn_model.kneighbors(X_pred, 11)
-
-    # estimate quantile forecasts
-    quantile_forecasts = get_quantiles(
-        mean_est, neighbor_distances, indexes, quantiles)
+    quantile_df = quantile_df.iloc[indexes]
 
     # return quantile forecasts in terms of absolute evaluation
     abs_eval = (len(quantiles) != 5)
@@ -51,15 +54,15 @@ def get_KNNRegression_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 
         print('true')
         horizon = pd.date_range(start=energydata.index[-1] + pd.DateOffset(
             hours=1), periods=periods, freq='H')
-        quantile_forecasts.insert(
+        quantile_df.insert(
             0, 'date_time', [horizon[i] for i in indexes])
 
-        return quantile_forecasts
+        return quantile_df
 
     # else: create submission frame
     else:
         forecast_frame = create_submission_frame.get_frame(
-            quantile_forecasts, indexes)
+            quantile_df, indexes)
         forecast_frame = forecast_frame.drop(columns={'index'})
         horizon = pd.date_range(start=energydata.index[-1] + pd.DateOffset(
             hours=1), periods=periods, freq='H')
