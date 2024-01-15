@@ -17,20 +17,17 @@ def get_Lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 
         energydata = extract_energy_data.get_data(num_years=1.73)
 
     # get standardized features
-    energydata = extract_all_features.get_energy_and_standardized_features(
-        energydata, lasso=True)
+    if len(energydata) > 17520:
+        energydata = extract_all_features.get_energy_and_standardized_features(
+            energydata, lasso=True)[-17520:]
+    else:
+        energydata = extract_all_features.get_energy_and_standardized_features(
+            energydata, lasso=True)
 
     # split df
     y = energydata[['energy_consumption']]
     X = energydata.drop(columns=['energy_consumption'])
     X = sm.add_constant(X, has_constant="add")
-    X_int_pol = get_interaction_and_pol_terms(X)
-
-    # fit Lasso Regression with best alpha
-    lasso = Lasso(alpha=0.0531)
-
-    # Fit the model on the scaled data
-    lasso.fit(X_int_pol, y)
 
     # create dataframe to store forecast quantiles
     X_fc = get_forecast_timestamps.forecast_timestamps(
@@ -40,10 +37,18 @@ def get_Lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 
     X_fc = sm.add_constant(X_fc, has_constant='add')
 
     # approximate sun_hours by last observation
-    last_obs = len(X_int_pol) - 1
-    sun_hours_val = float(X_int_pol.iloc[last_obs][['sun_hours']])
-    X_fc['sun_hours'] = sun_hours_val
+    # last_obs = len(X_int_pol) - 1
+    # sun_hours_val = float(X_int_pol.iloc[last_obs][['sun_hours']])
+    # X_fc['sun_hours'] = sun_hours_val
+
+    X_int_pol = get_interaction_and_pol_terms(X)
     X_fc_int_pol = get_interaction_and_pol_terms(X_fc)
+
+    # fit Lasso Regression with best alpha
+    lasso = Lasso(alpha=0.0531)
+
+    # Fit the model on the scaled data
+    lasso.fit(X_int_pol, y)
 
     # estimate forecast means
     mean_est = lasso.predict(X_fc_int_pol)[indexes]

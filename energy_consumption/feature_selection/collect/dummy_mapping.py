@@ -33,6 +33,17 @@ def get_mappings_baseline(energy_df):
     )
 
 
+def get_mappings_knn(energy_df):
+    return (
+        energy_df
+        .pipe(get_hour_mapping)
+        .pipe(get_day_mapping)
+        .pipe(get_month_mapping)
+        .pipe(get_year_mapping)
+        .pipe(get_holiday_mapping_advanced)
+    )
+
+
 def get_season_mapping(energy_df):
 
     energy_df['month'] = energy_df.index.month
@@ -71,38 +82,47 @@ def get_workday_mapping(energy_df):
 
 def get_day_mapping(energy_df):
 
-    energy_df.loc[:, 'weekday'] = energy_df.index.weekday
-    energy_df = pd.get_dummies(
-        energy_df, columns=['weekday'], prefix=['day'], dtype=int, drop_first=True)
+    days = list(range(1, 7))  # leave out monday
+    energy_df.loc[:, 'day'] = energy_df.index.weekday
+    for d in days:
+        name = f'day_{d}'
+        energy_df[name] = np.where(energy_df['day'] == d, 1, 0)
 
-    return energy_df
+    return energy_df.drop(columns=['day'])
 
 
 def get_hour_mapping(energy_df):
 
+    hours = list(range(1, 24))  # leave out 0:00 am
     energy_df.loc[:, 'hour'] = energy_df.index.hour
-    energy_df = pd.get_dummies(
-        energy_df, columns=['hour'], prefix=['hour'], dtype=int, drop_first=True)
+    for h in hours:
+        name = f'hour_{h}'
+        energy_df[name] = np.where(energy_df['hour'] == h, 1, 0)
 
-    return energy_df
+    return energy_df.drop(columns=['hour'])
 
 
 def get_month_mapping(energy_df):
 
+    months = list(range(2, 13))  # leave out january
     energy_df.loc[:, 'month'] = energy_df.index.month
-    energy_df = pd.get_dummies(
-        energy_df, columns=['month'], prefix=['month'], dtype=int, drop_first=True)
+    for m in months:
+        name = f'month_{m}'
+        energy_df[name] = np.where(energy_df['month'] == m, 1, 0)
 
-    return energy_df
+    return energy_df.drop(columns=['month'])
 
 
 def get_year_mapping(energy_df):
 
+    # need to drop reference variable in the end
+    years = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
     energy_df.loc[:, 'year'] = energy_df.index.year
-    energy_df = pd.get_dummies(
-        energy_df, columns=['year'], prefix=['year'], dtype=int, drop_first=True)
+    for y in years:
+        name = f'year_{y}'
+        energy_df[name] = np.where(energy_df['year'] == y, 1, 0)
 
-    return energy_df
+    return energy_df.drop(columns='year')
 
 
 def get_kmeans_hour_mapping(energy_df):

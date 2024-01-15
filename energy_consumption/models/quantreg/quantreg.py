@@ -13,8 +13,13 @@ def get_QuantReg_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79]):
         # use derived optimum for number of years
         energydata = extract_energy_data.get_data(num_years=1.73)
 
-    energydata = extract_all_features.get_energy_and_features(energydata,
-                                                              quantReg_final=True)
+    # get features
+    if len(energydata) > 17520:
+        energydata = extract_all_features.get_energy_and_features(energydata,
+                                                                  quantReg_final=True)[-17520:]
+    else:
+        energydata = extract_all_features.get_energy_and_features(energydata,
+                                                                  quantReg_final=True)
 
     X = energydata.drop(columns=['energy_consumption'])
     X = sm.add_constant(X, has_constant="add")
@@ -27,13 +32,6 @@ def get_QuantReg_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79]):
     energyforecast = extract_all_features.get_energy_and_features(energyforecast,
                                                                   quantReg_final=True)
     X_pred = sm.add_constant(energyforecast, has_constant='add')
-
-    if 'day_1' not in X_pred.columns:
-        X_pred.insert(3, 'day_1', 0)
-        X_pred.insert(4, 'day_2', 0)
-
-    # print for safety
-    print(X_pred.head(5))
 
     # model
     quantiles = [0.025, 0.25, 0.5, 0.75, 0.975]

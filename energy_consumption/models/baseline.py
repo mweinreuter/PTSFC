@@ -3,7 +3,7 @@ import numpy as np
 
 import statsmodels.api as sm
 
-from energy_consumption.feature_selection.extract import extract_energy_data, extract_all_features
+from energy_consumption.feature_selection.extract import extract_energy_data
 from energy_consumption.feature_selection.collect.dummy_mapping import get_mappings_baseline
 from energy_consumption.help_functions import get_forecast_timestamps, create_submission_frame
 
