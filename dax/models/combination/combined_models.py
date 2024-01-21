@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
-from dax.models.time_series_models.garch11_t import get_garch_11_t
+from dax.models.combination.ARMA_GARCH.garch11_t import get_garch_11_t
 from dax.models.baseline import get_dax_forecasts_baseline
-from dax.models.quantile_regression import get_quantile_regression_forecasts
+from dax.models.QuantReg.quantile_regression import get_quantile_regression_forecasts
 
 # only combination ob garch(1,1) and baseline possible (in any other case: change import statements)
 

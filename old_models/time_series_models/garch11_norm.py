@@ -4,17 +4,18 @@ import numpy as np
 from arch import arch_model
 
 from evaluation.help_functions.prepare_data import next_working_days
-from dax.help_functions.get_quantiles import get_norm_quantiles_mean
+from dax.models.combination.ARMA_GARCH.get_quantiles import get_norm_quantiles
 from dax.help_functions.get_dax_data import get_prepared_data
 
 
-def get_garch_11_ar(daxdata=pd.DataFrame()):
+def get_garch_11_norm(daxdata=pd.DataFrame()):
 
     if daxdata.empty:
         daxdata = get_prepared_data()
 
     date_st = daxdata.index[-1].strftime('%Y-%m-%d')
-    quantiles = garch11s_ar(daxdata)
+    quantiles = garch11s_norm(daxdata)
+
     quantiles.insert(0, 'forecast_date', date_st)
     quantiles.insert(1, 'target', 'DAX')
     quantiles.insert(2, "horizon", [str(i) + " day" for i in (1, 2, 5, 6, 7)])
@@ -23,18 +24,13 @@ def get_garch_11_ar(daxdata=pd.DataFrame()):
 
 
 # Runs GARCH(1,1) for each horizon
-def garch11s_ar(df):
+def garch11s_norm(df):
 
-    horizon_estimates = {}
+    # predict variance for each horizon via garch11
+    variances = [garch11_norm(df[f'LogRetLag{h}'], h) for h in range(1, 6)]
 
-    # Predict variance and mean for each horizon via garch11 and ar mean
-    for h in range(1, 6):
-        mean, variance = garch11_ar(df[f'LogRetLag{h}'], h)
-        horizon_estimates[f'horizon{h}'] = (mean, variance)
-
-    # get quantiles via normal distribution and predicted variances and means
-    quantiles = [get_norm_quantiles_mean(pair)
-                 for pair in horizon_estimates.values()]
+    # get quantiles via normal distribution and predicted variances
+    quantiles = [get_norm_quantiles(v) for v in variances]
 
     # create submission frame
     column_names = [f'q{q}' for q in [0.025, 0.25, 0.5, 0.75, 0.975]]
@@ -46,14 +42,9 @@ def garch11s_ar(df):
     return quantile_df
 
 
-def garch11_ar(df, horizon):
+def garch11_norm(df, horizon):
 
-    model = arch_model(df, mean='AR', p=1, q=1)
+    model = arch_model(df, mean='zero', p=1, q=1)
     model_fit = model.fit()
     predictions = model_fit.forecast(horizon=horizon)
-
-    # Extract mean and variance
-    mean_value = np.array(predictions.mean)[0][-1]
-    variance_value = predictions.variance.values[0][-1]
-
-    return mean_value, variance_value
+    return predictions.variance.values[0][-1]

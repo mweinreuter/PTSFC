@@ -32,7 +32,8 @@ def get_KNNRegression_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 
     X, X_pred = drop_years(X, X_pred)
 
     # fit KNNRegression with best k
-    knn_model = KNeighborsRegressor(n_neighbors=11, weights='distance')
+    knn_model = KNeighborsRegressor(
+        n_neighbors=11, weights='distance')
 
     # Fit the model on the scaled data
     knn_model.fit(X, y)

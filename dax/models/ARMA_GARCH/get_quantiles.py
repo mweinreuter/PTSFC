@@ -13,6 +13,6 @@ def get_norm_quantiles_mean(pair):
     return mean + math.sqrt(variance)*norm.ppf([0.025, 0.25, 0.5, 0.75, 0.975], loc=0)
 
 
-def get_t_quantiles(pair, mean_est=0):
-    t_df, variance = pair
+def get_t_quantiles(tuple):
+    t_df, variance, mean_est = tuple
     return mean_est + math.sqrt(variance) * t.ppf([0.025, 0.25, 0.5, 0.75, 0.975], df=t_df)
