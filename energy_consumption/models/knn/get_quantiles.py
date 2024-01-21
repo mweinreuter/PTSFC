@@ -12,6 +12,7 @@ def get_quantiles(mean_est, neighbor_distances, indexes, quantiles):
 
     column_names = [f'q{q}' for q in quantiles]
     quantile_df = pd.DataFrame(columns=column_names)
+    quantiles = list(100*np.array(quantiles))
 
     # input two np.arrays
     for i in indexes:
@@ -23,8 +24,8 @@ def get_quantiles(mean_est, neighbor_distances, indexes, quantiles):
         # estimate quantile
         name = f'index_{i}'
         print(np.array(mean_est[i] + distance_ratio *
-              np.percentile(residuals[name], [2.5, 25, 50, 75, 97.5])))
+              np.percentile(residuals[name], quantiles)))
         quantile_df.loc[i] = np.array(
-            mean_est[i] + distance_ratio*sqrt(round(i/24, 1))*np.percentile(residuals[name], [2.5, 25, 50, 75, 97.5]))
+            mean_est[i] + distance_ratio*np.percentile(residuals[name], quantiles))
 
     return quantile_df

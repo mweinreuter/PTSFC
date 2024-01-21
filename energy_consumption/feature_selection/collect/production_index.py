@@ -27,6 +27,9 @@ def merge_production_indexes(energydata):
     # AR model (using OLS)
     model = sm.OLS(y_index_ext, X_lags_ext).fit()
 
+    # get residuals to get forecast variance proxy
+    residuals = model.resid
+
     # Get the beta coefficients
     betas = np.array(model.params)
 
@@ -56,4 +59,4 @@ def merge_production_indexes(energydata):
                       'year', 'month']).set_index('date_time').drop(columns={'year', 'month', 'Lag1', 'Lag2',
                                                                              'Lag3', 'Lag12', 'index_cleaned'})
 
-    return merged, model.rsquared_adj
+    return merged, model.rsquared_adj, residuals

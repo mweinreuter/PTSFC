@@ -8,9 +8,30 @@ from datetime import date
 def get_mappings(energy_df):
     return (
         energy_df
-        .pipe(get_season_mapping)
-        .pipe(get_workday_mapping)
+        .pipe(get_hour_mapping)
+        .pipe(get_day_mapping)
+        .pipe(get_month_mapping)
+        .pipe(get_year_mapping)
+        .pipe(get_holiday_mapping_advanced)
+    )
+
+
+def get_mappings_fs(energy_df):
+    return (
+        energy_df
         .pipe(get_kmeans_hour_mapping)
+        .pipe(get_workday_mapping)
+        .pipe(get_season_mapping)
+        .pipe(get_holiday_mapping_advanced)
+    )
+
+
+def get_mappings_fs_compare(energy_df):
+    return (
+        energy_df
+        .pipe(get_hour_mapping)
+        .pipe(get_day_mapping)
+        .pipe(get_season_mapping)
         .pipe(get_holiday_mapping_advanced)
     )
 
@@ -21,6 +42,7 @@ def get_mappings_advanced(energy_df):
         .pipe(get_season_mapping)
         .pipe(get_day_mapping)
         .pipe(get_hour_mapping)
+        .pipe(get_year_mapping)
         .pipe(get_holiday_mapping_advanced)
     )
 
@@ -30,17 +52,6 @@ def get_mappings_baseline(energy_df):
         energy_df
         .pipe(get_hour_mapping)
         .pipe(get_month_mapping)
-    )
-
-
-def get_mappings_knn(energy_df):
-    return (
-        energy_df
-        .pipe(get_hour_mapping)
-        .pipe(get_day_mapping)
-        .pipe(get_month_mapping)
-        .pipe(get_year_mapping)
-        .pipe(get_holiday_mapping_advanced)
     )
 
 
