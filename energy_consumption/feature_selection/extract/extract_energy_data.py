@@ -5,7 +5,7 @@ import requests
 from datetime import datetime
 from tqdm import tqdm
 
-from evaluation.help_functions.prepare_data import most_recent_wednesday
+from evaluation.help_functions.prepare_data import most_recent_wednesday, most_recent_thursday
 from energy_consumption.feature_selection.clean.impute_outliers import impute_outliers
 
 
@@ -53,7 +53,8 @@ def get_data(num_years=7, set_wed=True, wednesday_morning=False):  # to do: fast
     if set_wed == True:
         return set_last_wed(energydata, wednesday_morning=wednesday_morning)
     else:
-        return energydata
+        # in case of baseline model
+        return set_last_thursday(energydata)
 
 
 def set_last_wed(energydata, wednesday_morning):
@@ -65,3 +66,14 @@ def set_last_wed(energydata, wednesday_morning):
     energydata_wed = energydata.loc[energydata.index <= start_date].copy()
 
     return (energydata_wed)
+
+
+def set_last_thursday(energydata):
+
+    # make sure last energy value is on thursday, 2:00 pm
+    start_date = most_recent_thursday(energydata)
+
+    # set last timestamp
+    energydata_thursday = energydata.loc[energydata.index <= start_date].copy()
+
+    return (energydata_thursday)

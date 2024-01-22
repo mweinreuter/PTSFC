@@ -1,53 +1,64 @@
 import pandas as pd
 import numpy as np
 
-import statsmodels.api as sm
-
 from energy_consumption.feature_selection.extract import extract_energy_data
-from energy_consumption.feature_selection.collect.dummy_mapping import get_mappings_baseline
-from energy_consumption.help_functions import get_forecast_timestamps, create_submission_frame
+
+from datetime import datetime, date, timedelta
 
 
-def get_baseline_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79]):
+def get_baseline_forecasts(energydata=pd.DataFrame(), tau=[0.025, 0.25, 0.5, 0.75, 0.975]):
 
-    if type(energydata) == float:
+    if energydata.empty:
+        energydata = extract_energy_data.get_data(
+            num_years=5, set_wed=False)  # change to 5
+    else:
+        energydata = extract_energy_data.set_last_thursday(energydata)
+    energydata = energydata.rename(
+        columns={"energy_consumption": "gesamt"})
 
-        # use derived optimum for number of years
-        energydata = extract_energy_data.get_data(num_years=7)
+    energydata["weekday"] = energydata.index.weekday
+    horizons_def = [36, 40, 44, 60, 64, 68]
+    horizons = [h+1 for h in horizons_def]
 
-    energydata = get_mappings_baseline(energydata)
+    LAST_IDX = -1
+    LAST_DATE = energydata.iloc[LAST_IDX].name
 
-    X = energydata.drop(columns=['energy_consumption'])
-    X = sm.add_constant(X, has_constant="add")
-    y = energydata['energy_consumption']
+    horizon_date = [get_date_from_horizon(LAST_DATE, h) for h in horizons]
 
-    # create dataframe to store forecast quantiles
-    energyforecast = get_forecast_timestamps.forecast_timestamps(
-        energydata.index[-1])
+    # rows correspond to horizon, columns to quantile level
+    pred_baseline = np.zeros((6, 5))
 
-    energyforecast = get_mappings_baseline(energyforecast)
-    X_pred = sm.add_constant(energyforecast, has_constant='add')
+    last_t = 100
 
-    # make sure predictors have same dimension
-    X_pred_all = pd.DataFrame()
-    for col in X.columns:
-        if col in X_pred.columns:
-            X_pred_all[col] = X_pred[col]
-        else:
-            X_pred_all[col] = 0
+    for i, d in enumerate(horizon_date):
 
-        # model
-    quantiles = [0.025, 0.25, 0.5, 0.75, 0.975]
-    model_qr = sm.QuantReg(y, X)
+        weekday = d.weekday()
+        hour = d.hour
 
-    for q in quantiles:
-        model_temp = model_qr.fit(q=q)
-        forecast_temp = model_temp.predict(X_pred_all)
-        energyforecast[f'forecast{q}'] = forecast_temp
+        df_tmp = energydata.iloc[:LAST_IDX]
 
-    selected_forecasts = energyforecast.loc[energyforecast.index[indexes],
-                                            'forecast0.025':'forecast0.975']
-    selected_forecasts_frame = create_submission_frame.get_frame(
-        selected_forecasts)
+        cond = (df_tmp.weekday == weekday) & (df_tmp.index.time == d.time())
 
-    return selected_forecasts_frame
+        pred_baseline[i, :] = np.quantile(
+            df_tmp[cond].iloc[-last_t:]["gesamt"], q=tau)
+
+    date_str = datetime.today().strftime('%Y%m%d')
+
+    date_str = date.today()  # - timedelta(days=1)
+    date_str = date_str.strftime('%Y-%m-%d')
+
+    df_sub = pd.DataFrame({
+        "forecast_date": date_str,
+        "target": "energy",
+        "horizon": [str(h) + " hour" for h in horizons_def],
+        "q0.025": pred_baseline[:, 0],
+        "q0.25": pred_baseline[:, 1],
+        "q0.5": pred_baseline[:, 2],
+        "q0.75": pred_baseline[:, 3],
+        "q0.975": pred_baseline[:, 4]})
+
+    return df_sub
+
+
+def get_date_from_horizon(last_ts, horizon):
+    return last_ts + pd.DateOffset(hours=horizon)

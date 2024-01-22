@@ -16,11 +16,11 @@ optimized_params = dict(
 )
 
 
-def get_XGBoost_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100):
+def get_XGBoost_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100, abs_eval=False):
 
     if type(energydata) == float:
         # use derived optimum for number of years
-        energydata = extract_energy_data.get_data(num_years=7)
+        energydata = extract_energy_data.get_data(num_years=0.25)  # 6.17
 
     energydata = extract_all_features.get_energy_and_standardized_features(
         energydata, knn=True)
@@ -38,7 +38,7 @@ def get_XGBoost_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], q
     X, X_pred = drop_years(X, X_pred)
 
     quantile_df = pd.DataFrame()
-    for alpha in [0.025, 0.25, 0.5, 0.75, 0.975]:
+    for alpha in quantiles:
         name = f'q{alpha}'
         gbr = GradientBoostingRegressor(
             loss="quantile", alpha=alpha, **optimized_params)
@@ -49,9 +49,7 @@ def get_XGBoost_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], q
     quantile_df = quantile_df.iloc[indexes]
 
     # return quantile forecasts in terms of absolute evaluation
-    abs_eval = (len(quantiles) != 5)
     if abs_eval == True:
-        print('true')
         horizon = pd.date_range(start=energydata.index[-1] + pd.DateOffset(
             hours=1), periods=periods, freq='H')
         quantile_df.insert(

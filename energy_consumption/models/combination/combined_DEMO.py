@@ -7,7 +7,7 @@ from energy_consumption.models.combination.combine_models import get_combined_mo
 # import required models
 from energy_consumption.models.lasso.lasso import get_Lasso_forecasts
 from energy_consumption.models.quantreg.quantreg import get_QuantReg_forecasts
-from energy_consumption.models.baseline import get_baseline_forecasts
+from old_models.baseline import get_baseline_forecasts
 from energy_consumption.models.knn.knn import get_KNNRegression_forecasts
 from energy_consumption.models.xgboost.XGBoost import get_XGBoost_forecasts
 

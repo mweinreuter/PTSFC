@@ -7,7 +7,7 @@ from energy_consumption.feature_selection.extract import extract_energy_data, ex
 from energy_consumption.help_functions import get_forecast_timestamps, create_submission_frame
 
 
-def get_QuantReg_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], quantiles=[0.025, 0.25, 0.5, 0.75, 0.975]):
+def get_QuantReg_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], abs_eval=False):
 
     if type(energydata) == float:
         # use derived optimum for number of years (see notebook)
@@ -30,9 +30,11 @@ def get_QuantReg_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], 
     energyforecast = get_forecast_timestamps.forecast_timestamps(
         energydata.index[-1])
 
-    energyforecast = extract_all_features.get_energy_and_features(energyforecast,
-                                                                  feature_selection=True)
-    X_pred = energyforecast.insert(loc=0, column='constant', value=1)
+    X_pred = extract_all_features.get_energy_and_features(energyforecast,
+                                                          feature_selection=True)
+    X_pred = X_pred.drop(
+        columns=['population', 'spring_autumn', 'abs_log_ret_weekly'])
+    X_pred.insert(loc=0, column='constant', value=1)
 
     # model
     model_qr = sm.QuantReg(y, X)
@@ -42,9 +44,15 @@ def get_QuantReg_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], 
         forecast_temp = model_temp.predict(X_pred)
         energyforecast[f'forecast{q}'] = forecast_temp
 
-    selected_forecasts = energyforecast.loc[energyforecast.index[indexes],
-                                            'forecast0.025':'forecast0.975']
-    selected_forecasts_frame = create_submission_frame.get_frame(
-        selected_forecasts)
+    first_name = f'forecast{quantiles[0]}'
+    max_index = len(quantiles) - 1
+    last_name = f'forecast{quantiles[max_index]}'
 
-    return (selected_forecasts_frame)
+    selected_forecasts = energyforecast.loc[energyforecast.index[indexes],
+                                            first_name:last_name]
+
+    if abs_eval == False:
+        selected_forecasts = create_submission_frame.get_frame(
+            selected_forecasts)
+
+    return selected_forecasts
