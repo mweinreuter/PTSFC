@@ -14,13 +14,11 @@ def get_Lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 
 
     if energydata.empty:
         # use derived optimum for number of years (see notebook)
-        energydata = extract_energy_data.get_data(num_years=6.17)
-    if len(energydata) > 54027:
-        energydata = energydata[-54027:]
+        energydata = extract_energy_data.get_data()
 
     # get standardized features
-    energydata = extract_all_features.get_energy_and_standardized_features(energydata,
-                                                                           lasso=True)
+    energydata = extract_all_features.get_energy_and_standardized_features2(energydata,
+                                                                            lasso=True)
 
     # split df
     y = energydata[['energy_consumption']]
@@ -31,7 +29,7 @@ def get_Lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 
     # create dataframe to store forecast quantiles
     X_fc = get_forecast_timestamps.forecast_timestamps(
         energydata.index[-1])
-    X_fc = extract_all_features.get_energy_and_standardized_features(
+    X_fc = extract_all_features.get_energy_and_standardized_features2(
         X_fc, lasso=True)
     X_fc = get_interaction_and_pol_terms(X_fc)
     X_fc.insert(loc=0, column='constant', value=1)
@@ -40,7 +38,7 @@ def get_Lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 
     X, X_fc = drop_years.drop_years(X, X_fc)
 
     # fit Lasso Regression with best alpha
-    lasso = Lasso(alpha=0.0547)
+    lasso = Lasso(alpha=0.006)
 
     # Fit the model on the scaled data
     lasso.fit(X, y)
