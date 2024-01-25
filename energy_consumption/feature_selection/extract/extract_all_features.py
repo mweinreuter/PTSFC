@@ -9,7 +9,7 @@ from energy_consumption.feature_selection.clean.impute_outliers import impute_ou
 
 def get_energy_and_features(energydata=np.nan, lasso=False,
                             feature_selection=False, feature_selection_comp=False,
-                            quantReg_final1=False, ts=False, only_features=False):
+                            quantReg_final1=False, feature_selection_comp2=False, ts=False, only_features=False):
 
     if type(energydata) == float:
         energydata = pd.read_csv(
@@ -40,6 +40,14 @@ def get_energy_and_features(energydata=np.nan, lasso=False,
             columns=['close_weekly', 'volatility_weekly']).dropna(subset='abs_log_ret_weekly')
 
     if feature_selection_comp == True:  # try to change
+        energydata = (energydata
+                      .pipe(dummy_mapping.get_mappings)
+                      .pipe(weather_sunhours.ec_sun_hours_merge)
+                      .pipe(weather_tempandwind.ec_weather_merge)
+                      .pipe(production_index.merge_production_indexes)[0]
+                      )
+
+    if feature_selection_comp2 == True:  # try to change
         energydata = (energydata
                       .pipe(dummy_mapping.get_mappings_fs_compare)
                       .pipe(weather_sunhours.ec_sun_hours_merge)
