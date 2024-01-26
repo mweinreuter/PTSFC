@@ -5,24 +5,20 @@ from sklearn.linear_model import Lasso
 
 from energy_consumption.feature_selection.extract import extract_energy_data, extract_all_features
 from energy_consumption.help_functions import get_forecast_timestamps, create_submission_frame
-from energy_consumption.help_functions import drop_years
-from energy_consumption.models.lasso.functions import get_quantiles, get_interaction_and_pol_terms
+from energy_consumption.help_functions.drop_years import drop_years
+from energy_consumption.models.lasso.functions import get_interaction_and_pol_terms, get_quantiles
 
 
 def get_Lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 79],
-                        quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100, abs_eval=False):
+                        quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100, abs_eval=False, wednesday_morning=False):
 
     if energydata.empty:
         # use derived optimum for number of years (see notebook)
-        energydata = extract_energy_data.get_data(num_years=6.17)
+        energydata = extract_energy_data.get_data()  # 0.25
 
-    if len(energydata) > 54050:
-        # get standardized features
-        energydata = extract_all_features.get_energy_and_standardized_features2(energydata,
-                                                                                lasso=True)[-54050:]
-    else:
-        energydata = extract_all_features.get_energy_and_standardized_features2(energydata,
-                                                                                lasso=True)
+    # get standardized features
+    energydata = extract_all_features.get_energy_and_standardized_features2(energydata,
+                                                                            lasso_check=True)
 
     # split df
     y = energydata[['energy_consumption']]
@@ -33,22 +29,24 @@ def get_Lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 
     # create dataframe to store forecast quantiles
     X_fc = get_forecast_timestamps.forecast_timestamps(
         energydata.index[-1])
+
     X_fc = extract_all_features.get_energy_and_standardized_features2(
-        X_fc, lasso=True)
+        X_fc, lasso_check=True)
     X_fc = get_interaction_and_pol_terms(X_fc)
     X_fc.insert(loc=0, column='constant', value=1)
-
+    print(X_fc)
     # drop years
-    X, X_fc = drop_years.drop_years(X, X_fc)
+    X, X_fc = drop_years(X, X_fc)
 
     # fit Lasso Regression with best alpha
-    lasso = Lasso(alpha=0.006)
+    lasso = Lasso(alpha=0.0064)
 
     # Fit the model on the scaled data
     lasso.fit(X, y)
 
     # estimate forecast means
     mean_est = lasso.predict(X_fc).flatten()
+    print(mean_est)
 
     # estimate quantile forecasts
     quantile_forecasts = get_quantiles(
