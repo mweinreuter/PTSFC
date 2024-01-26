@@ -6,18 +6,20 @@ from energy_consumption.feature_selection.extract import extract_energy_data
 from datetime import datetime, date, timedelta
 
 
-def get_baseline_forecasts(energydata=pd.DataFrame(), tau=[0.025, 0.25, 0.5, 0.75, 0.975]):
+def get_baseline_forecasts(energydata=np.nan, quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], indexes=[47, 51, 55, 71, 75, 79], abs_eval=False):
 
-    if energydata.empty:
+    if type(energydata) == float:
         energydata = extract_energy_data.get_data(
             num_years=5, set_wed=False)  # change to 5
-    else:
-        energydata = extract_energy_data.set_last_thursday(energydata)
+
+    if len(energydata) > 43800:
+        energydata = energydata[-43800:]
+
     energydata = energydata.rename(
         columns={"energy_consumption": "gesamt"})
 
     energydata["weekday"] = energydata.index.weekday
-    horizons_def = [36, 40, 44, 60, 64, 68]
+    horizons_def = indexes
     horizons = [h+1 for h in horizons_def]
 
     LAST_IDX = -1
@@ -30,6 +32,12 @@ def get_baseline_forecasts(energydata=pd.DataFrame(), tau=[0.025, 0.25, 0.5, 0.7
 
     last_t = 100
 
+    # create df
+    col_names = []
+    for q in quantiles:
+        col_names.append(f'q{q}')
+    forecasts = pd.DataFrame(columns=col_names)
+
     for i, d in enumerate(horizon_date):
 
         weekday = d.weekday()
@@ -39,25 +47,36 @@ def get_baseline_forecasts(energydata=pd.DataFrame(), tau=[0.025, 0.25, 0.5, 0.7
 
         cond = (df_tmp.weekday == weekday) & (df_tmp.index.time == d.time())
 
-        pred_baseline[i, :] = np.quantile(
-            df_tmp[cond].iloc[-last_t:]["gesamt"], q=tau)
+        new_row = np.quantile(
+            df_tmp[cond].iloc[-last_t:]["gesamt"], q=quantiles)
 
-    date_str = datetime.today().strftime('%Y%m%d')
+        forecasts.loc[len(forecasts)] = new_row
 
-    date_str = date.today()  # - timedelta(days=1)
-    date_str = date_str.strftime('%Y-%m-%d')
+    forecasts.index = horizon_date
+    forecasts.index.name = 'date_time'
 
-    df_sub = pd.DataFrame({
-        "forecast_date": date_str,
-        "target": "energy",
-        "horizon": [str(h) + " hour" for h in horizons_def],
-        "q0.025": pred_baseline[:, 0],
-        "q0.25": pred_baseline[:, 1],
-        "q0.5": pred_baseline[:, 2],
-        "q0.75": pred_baseline[:, 3],
-        "q0.975": pred_baseline[:, 4]})
+    if abs_eval == True:
+        return forecasts
 
-    return df_sub
+    else:
+        date_str = datetime.today().strftime('%Y%m%d')
+
+        date_str = date.today()  # - timedelta(days=1)
+        date_str = date_str.strftime('%Y-%m-%d')
+
+        horizons_adj = list(np.array(horizons_def) - 11)
+
+        df_sub = pd.DataFrame({
+            "forecast_date": date_str,
+            "target": "energy",
+            "horizon": [str(h) + " hour" for h in horizons_adj],
+            "q0.025": forecasts['q0.025'],
+            "q0.25": forecasts['q0.25'],
+            "q0.5": forecasts['q0.5'],
+            "q0.75": forecasts['q0.75'],
+            "q0.975": forecasts['q0.975']})
+
+        return df_sub
 
 
 def get_date_from_horizon(last_ts, horizon):

@@ -124,7 +124,7 @@ def get_energy_and_standardized_features(energydata=np.nan, lasso=False, knn=Fal
     return X_standardized_df
 
 
-def get_energy_and_standardized_features2(energydata=np.nan, lasso=False, knn=False):
+def get_energy_and_standardized_features2(energydf=np.nan, lasso=False, lasso_check=False, knn=False):
 
     if type(energydata) == float:
         energydata = pd.read_csv(
@@ -134,7 +134,7 @@ def get_energy_and_standardized_features2(energydata=np.nan, lasso=False, knn=Fa
         energydata = energydata.set_index("date_time")
         energydata = impute_outliers(energydata)
 
-    energydata = energydata.copy()
+    energydata = energydf.copy()
 
     if lasso == True:  # try to change
         print('did you update weather and index?')
@@ -144,6 +144,20 @@ def get_energy_and_standardized_features2(energydata=np.nan, lasso=False, knn=Fa
                       .pipe(production_index.merge_production_indexes)[0]
                       .pipe(population.get_population)
                       )
+
+    if lasso_check == True:  # try to change
+        print('did you update weather and index?')
+        energydata = (energydata
+                      .pipe(political_instability.ec_dax_merge)
+                      .pipe(weather_sunhours.ec_sun_hours_merge)
+                      .pipe(weather_tempandwind.ec_weather_merge)
+                      .pipe(production_index.merge_production_indexes)[0]
+                      .pipe(population.get_population)
+                      )
+        energydata = energydata.drop(
+            columns=['close_weekly', 'volatility_weekly'])
+        if 'abs_log_ret_weekly' in energydata.columns:
+            energydata = energydata.dropna(subset='abs_log_ret_weekly')
 
     if knn == True:
         energydata = (energydata

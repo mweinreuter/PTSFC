@@ -15,7 +15,7 @@ def get_KNNRegression_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 
     if type(energydata) == float:
         # use derived optimum for number of years
         energydata = extract_energy_data.get_data(
-            num_years=0.25)  # change to 7
+            num_years=7)
 
     energydata = extract_all_features.get_energy_and_standardized_features2(
         energydata, knn=True)

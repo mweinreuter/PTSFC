@@ -14,11 +14,15 @@ def get_Lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 
 
     if energydata.empty:
         # use derived optimum for number of years (see notebook)
-        energydata = extract_energy_data.get_data()
+        energydata = extract_energy_data.get_data(num_years=6.17)
 
-    # get standardized features
-    energydata = extract_all_features.get_energy_and_standardized_features2(energydata,
-                                                                            lasso=True)
+    if len(energydata) > 54050:
+        # get standardized features
+        energydata = extract_all_features.get_energy_and_standardized_features2(energydata,
+                                                                                lasso=True)[-54050:]
+    else:
+        energydata = extract_all_features.get_energy_and_standardized_features2(energydata,
+                                                                                lasso=True)
 
     # split df
     y = energydata[['energy_consumption']]

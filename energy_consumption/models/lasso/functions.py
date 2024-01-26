@@ -31,7 +31,7 @@ def get_quantiles(mean_est, quantiles=[0.025, 0.25, 0.5, 0.75, 0.975]):
 
     mean_corr = np.array(mean_est) - mean_residuals
 
-    # add variance due to forecasts of regressors
+    # add variance proxy to forecasts of regressors
     std_to_add = sqrt(0.10246)
 
     for q in quantiles:

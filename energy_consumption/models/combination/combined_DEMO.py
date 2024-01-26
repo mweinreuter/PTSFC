@@ -5,11 +5,11 @@ from energy_consumption.feature_selection.extract import extract_energy_data
 from energy_consumption.models.combination.combine_models import get_combined_models
 
 # import required models
+
 from energy_consumption.models.lasso.lasso import get_Lasso_forecasts
-from energy_consumption.models.quantreg.quantreg import get_QuantReg_forecasts
-from old_models.baseline import get_baseline_forecasts
-from energy_consumption.models.knn.knn import get_KNNRegression_forecasts
-from energy_consumption.models.xgboost.XGBoost import get_XGBoost_forecasts
+from energy_consumption.models.quantreg.quantreg_cali import get_QuantReg_forecasts
+from energy_consumption.models.XGBoost.XGBoost import get_XGBoost_forecasts
+from energy_consumption.models.quantreg.quant_reg_short import get_QuantRegShort_forecasts
 
 
 def get_combined_DEMO(energydata=np.nan):
@@ -22,39 +22,32 @@ def get_combined_DEMO(energydata=np.nan):
     lasso = {
         "name": "lasso",
         "function": get_Lasso_forecasts,
-        "horizon_integration": [True, True, True, False, False, False],
-        "weights": [1/3, 1/3, 1/3, 1/3, 1/3, 1/3]
+        "horizon_integration": [False, False, False, False, True, False],
+        "weights": [0, 0, 0, 0, 1/2, 0]
     }
 
     quantReg = {
-        "name": "quantile regression",
+        "name": "quantile regression cali",
         "function": get_QuantReg_forecasts,
-        "horizon_integration": [True, True, True, True, True, True],
-        "weights": [1/3, 1/3, 1/3, 1/3, 1/3, 1/3]
+        "horizon_integration": [True, True, False, True, True, False],
+        "weights": [1/2, 1/2, 0, 1/2, 1/2, 0]
     }
 
-    baseline = {
-        "name": "baseline",
-        "function": get_baseline_forecasts,
-        "horizon_integration": [False, False, False, True, True, True],
-        "weights": [1/3, 1/3, 1/3, 1/3, 1/3, 1/3]
-    }
-
-    knn = {
-        "name": "KNNRegression",
-        "function": get_KNNRegression_forecasts,
-        "horizon_integration": [False, False, False, True, True, True],
-        "weights": [1/3, 1/3, 1/3, 1/3, 1/3, 1/3]
+    quantregshort = {
+        "name": "quantile regression short",
+        "function": get_QuantRegShort_forecasts,
+        "horizon_integration": [True, True, False, False, False, False],
+        "weights": [1/2, 1/2, 0, 0, 0, 0]
     }
 
     XGBoost = {
         'name': 'xgboost',
         'function': get_XGBoost_forecasts,
-        "horizon_integration": [False, False, False, True, True, True],
-        "weights": [1/3, 1/3, 1/3, 1/3, 1/3, 1/3]
+        "horizon_integration": [False, False, True, False, True, True],
+        "weights": [0, 0, 1, 1/2, 0, 1]
     }
 
-    models = [lasso, quantReg, baseline, knn, XGBoost]
+    models = [lasso, quantReg, quantregshort, XGBoost]
     combined_model = get_combined_models(
         models, energydata)
 

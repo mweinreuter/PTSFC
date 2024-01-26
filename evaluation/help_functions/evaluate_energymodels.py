@@ -51,6 +51,8 @@ def evaluate_energymodel(model, df, last_x=100, years=False, months=False, weeks
             evaluation = pd.DataFrame()
             break
         # pred = model['function'](df_before)
+        if 'date_time' == pred.index.name:            # changed
+            pred = pred.reset_index()  # changed
         obs = pd.DataFrame(                                                                                #
             {'energy_consumption': df.loc[pred['date_time']]['energy_consumption']})
         pred = pred.set_index('date_time')

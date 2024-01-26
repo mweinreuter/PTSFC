@@ -27,3 +27,23 @@ def get_quantiles(mean_est, neighbor_distances, quantiles):
             norm.ppf(q, loc=0)*std_dev_residuals*(0.75)
 
     return quantile_df
+
+
+def get_quantiles_cali(mean_est, neighbor_distances, quantiles):
+
+    quantile_df = pd.DataFrame()
+    quantiles = (np.array(quantiles))
+
+    mean_distances = np.array(distances['mean_distance'])
+    distance_specific = neighbor_distances.mean(axis=1)
+    distance_ratio = (distance_specific/mean_distances)  # durch?
+
+    mean_residuals = np.array(residuals.mean(axis=0))
+    mean_corr = np.array(mean_est) - mean_residuals
+
+    std_dev_residuals = np.array(residuals.std(axis=0))
+    for q in quantiles:  # chanted to mean est
+        quantile_df[f'q{q}'] = mean_est+distance_ratio * \
+            norm.ppf(q, loc=0)*std_dev_residuals*(0.75)
+
+    return quantile_df

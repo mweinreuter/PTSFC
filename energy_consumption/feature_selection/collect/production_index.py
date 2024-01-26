@@ -4,6 +4,10 @@ import statsmodels.api as sm
 
 
 def merge_production_indexes(energydata):
+    ''' Idea: take mean of production index of the month. Filter energy intense industry sectors. 
+    Fit a simple AR(2) model with seasonalities for each year to forecast index for current/missing months 
+    (updates approximately 38 days after reporting month). Add variance to models.
+     Source: https://www-genesis.destatis.de/genesis/online#abreadcrumb  '''
 
     productionindexes = pd.read_csv(
         'C:/Users/Maria/Documents/Studium/Pyhton Projekte/PTSFC/energy_consumption/feature_selection/data/prod_index.csv')

@@ -11,7 +11,7 @@ import numpy as np
 
 def get_weather_data_erfurt():
     weather = pd.read_csv(
-        'C:/Users/Maria/Documents/Studium/Pyhton Projekte/PTSFC/energy_consumption/feature_selection/data/weather_01172024.csv')
+        'C:/Users/Maria/Documents/Studium/Pyhton Projekte/PTSFC/energy_consumption/feature_selection/data/weather_012424.csv')
     weather['date'] = pd.to_datetime(
         weather['date'], format='%m/%d/%Y')
     return weather[['date', 'tavg', 'wspd']]

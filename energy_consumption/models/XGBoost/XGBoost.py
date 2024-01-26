@@ -19,11 +19,14 @@ optimized_params = dict(
 def get_XGBoost_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100, abs_eval=False):
 
     if type(energydata) == float:
-        # use derived optimum for number of years
-        energydata = extract_energy_data.get_data(num_years=0.25)  # 6.17
+        energydata = extract_energy_data.get_data(num_years=1.15)
 
-    energydata = extract_all_features.get_energy_and_standardized_features(
-        energydata, knn=True)
+    if len(energydata) > 10000:
+        energydata = extract_all_features.get_energy_and_features(
+            energydata, feature_selection_comp=True)[-10000:]
+    else:
+        energydata = extract_all_features.get_energy_and_features(
+            energydata, feature_selection_comp=True)
 
     X = energydata.drop(columns=['energy_consumption'])
     y = energydata['energy_consumption']
@@ -32,8 +35,8 @@ def get_XGBoost_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], q
     energyforecast = get_forecast_timestamps.forecast_timestamps(
         energydata.index[-1])
 
-    X_pred = extract_all_features.get_energy_and_standardized_features(
-        energyforecast, knn=True)
+    X_pred = extract_all_features.get_energy_and_features(
+        energyforecast, feature_selection_comp=True)
 
     X, X_pred = drop_years(X, X_pred)
 
