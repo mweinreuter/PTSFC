@@ -8,7 +8,7 @@ from energy_consumption.models.combination.combine_models import get_combined_mo
 
 from energy_consumption.models.lasso.lasso import get_Lasso_forecasts
 from energy_consumption.models.quantreg.quantreg_cali_short import get_QuantReg_forecasts
-from energy_consumption.models.XGBoost.XGBoost import get_XGBoost_forecasts
+from old_models.XGBoost import get_XGBoost_forecasts
 from energy_consumption.models.quantreg.quant_reg_short import get_QuantRegShort_forecasts
 
 

@@ -9,7 +9,7 @@ from energy_consumption.models.quantreg.quantreg_cali_short import get_QuantReg_
 from energy_consumption.models.quantreg.quant_reg_short import get_QuantRegShort_forecasts
 from energy_consumption.models.baseline import get_baseline_forecasts
 from energy_consumption.models.knn.knn import get_KNNRegression_forecasts
-from energy_consumption.models.XGBoost.XGBoost import get_XGBoost_forecasts
+from old_models.XGBoost import get_XGBoost_forecasts
 
 
 def combine_selected_models(energydata=pd.DataFrame):

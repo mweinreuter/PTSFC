@@ -22,7 +22,7 @@ def get_quantiles(mean_est, quantiles=[0.025, 0.25, 0.5, 0.75, 0.975]):
 
     # lasso variance
     residuals = pd.read_csv(
-        'c:\\Users\\Maria\\Documents\\Studium\\Pyhton Projekte\\PTSFC\\energy_consumption\\models\\lasso\\residuals.csv')
+        'c:\\Users\\Maria\\Documents\\Studium\\Pyhton Projekte\\PTSFC\\energy_consumption\\models\\lasso\\residuals_corr.csv')
     residual_std = np.sqrt(residuals.var(axis=0))
 
     # add variance due to forecasts of regressors

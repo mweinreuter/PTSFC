@@ -80,7 +80,8 @@ def get_energy_and_standardized_features2(energydf=np.nan, lasso=False, lasso_ch
         energydata = energydata.set_index("date_time")
         energydata = impute_outliers(energydata)
 
-    energydata = energydf.copy()
+    else:
+        energydata = energydf.copy()
 
     if lasso == True:  # try to change
         print('did you update weather and index?')

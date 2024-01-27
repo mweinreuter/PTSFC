@@ -5,7 +5,7 @@ from scipy.stats import norm
 
 from datetime import datetime
 
-from energy_consumption.feature_selection.extract.extract_SARIMAX_features import get_energy_and_SARIMAX_features
+from old_models.extract_SARIMAX_features import get_energy_and_SARIMAX_features
 from energy_consumption.models.SARIMAX.get_SARIMA_residuals import get_residuals
 
 
