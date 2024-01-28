@@ -5,8 +5,8 @@ from energy_consumption.feature_selection.extract import extract_energy_data
 
 # import required models
 from energy_consumption.models.lasso.lasso import get_Lasso_forecasts
-from energy_consumption.models.quantreg.quantreg_cali_short import get_QuantReg_forecasts
-from energy_consumption.models.quantreg.quant_reg_short import get_QuantRegShort_forecasts
+from energy_consumption.models.quantreg.quantreg_end import get_QuantReg_forecasts
+from energy_consumption.models.quantreg.quantreg_ex import get_QuantRegShort_forecasts
 from energy_consumption.models.baseline import get_baseline_forecasts
 from energy_consumption.models.knn.knn import get_KNNRegression_forecasts
 from old_models.XGBoost import get_XGBoost_forecasts

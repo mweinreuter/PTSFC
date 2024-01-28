@@ -9,12 +9,14 @@ from energy_consumption.help_functions.drop_years import drop_years
 from energy_consumption.models.lasso.functions import get_interaction_and_pol_terms, get_quantiles
 
 
-def get_Lasso_forecasts(energydata=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 79],
+def get_Lasso_forecasts(energydf=pd.DataFrame(), indexes=[47, 51, 55, 71, 75, 79],
                         quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100, abs_eval=False, wednesday_morning=False):
 
-    if energydata.empty:
+    if energydf.empty:
         # use derived optimum for number of years (see notebook)
-        energydata = extract_energy_data.get_data(num_years=6.17)
+        energydf = extract_energy_data.get_data(num_years=6.17)
+
+    energydata = energydf.copy()
 
     if len(energydata) > 54027:
         energydata = energydata[-54027:].copy()

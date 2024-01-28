@@ -8,11 +8,12 @@ from energy_consumption.help_functions import create_submission_frame
 from energy_consumption.models.XGBoost.functions import get_energy_and_forecast, get_opt_parameters
 
 
-def get_XGBoost_forecastsNew(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100, abs_eval=False):
+def get_XGBoost_forecasts(energydf=np.nan, indexes=[47, 51, 55, 71, 75, 79], quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100, abs_eval=False):
 
-    if type(energydata) == float:
-        energydata = extract_energy_data.get_data(num_years=2)
+    if type(energydf) == float:
+        energydf = extract_energy_data.get_data(num_years=2)
 
+    energydata = energydf.copy()
     energydata, X_pred = get_energy_and_forecast(energydata)
 
     X = energydata.drop(columns=['energy_consumption'])
@@ -31,6 +32,20 @@ def get_XGBoost_forecastsNew(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79]
         quantile_df[name] = y_pred
 
     quantile_df = quantile_df.iloc[indexes]
+
+    quantile_cols = [f'q{q}' for q in quantiles]
+
+    # Loop through the quantiles
+    for i in range(len(quantile_cols) - 1):
+        current_quantile = quantile_cols[i]
+        next_quantile = quantile_cols[i + 1]
+
+        # Check if there is an overlap
+        overlap = quantile_df[current_quantile] > quantile_df[next_quantile]
+
+        # Adjust the values if there is an overlap
+        quantile_df.loc[overlap,
+                        next_quantile] = quantile_df[current_quantile][overlap]
 
     # return quantile forecasts in terms of absolute evaluation
     if abs_eval == True:

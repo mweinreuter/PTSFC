@@ -9,11 +9,13 @@ from energy_consumption.help_functions import get_forecast_timestamps, create_su
 from energy_consumption.models.knn.get_quantiles import get_quantiles, get_quantiles_latest
 
 
-def get_KNNRegression_forecasts(energydata=np.nan, indexes=[47, 51, 55, 71, 75, 79], quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100, abs_eval=False):
+def get_KNNRegression_forecasts(energydf=np.nan, indexes=[47, 51, 55, 71, 75, 79], quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], periods=100, abs_eval=False):
 
-    if type(energydata) == float:
+    if type(energydf) == float:
         # use derived optimum for number of years
-        energydata = extract_energy_data.get_data(num_years=7)  # change to 7
+        energydf = extract_energy_data.get_data(num_years=7)  # change to 7
+
+    energydata = energydf.copy()
 
     energydata = extract_all_features.get_energy_and_standardized_features2(
         energydata, knn=True)
