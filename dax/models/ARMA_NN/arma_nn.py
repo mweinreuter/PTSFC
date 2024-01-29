@@ -34,8 +34,8 @@ opt_orders = {
 }
 
 # adjust parameters if needed
-k = 30
-m = 5
+k = 10
+m = 9
 
 
 def get_arma_nn_forecasts(daxdata=pd.DataFrame(), quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], submission=True):

@@ -3,16 +3,16 @@ import math
 from scipy.stats import norm, t
 
 
-def get_norm_quantiles(variance):
-    return 0 + math.sqrt(variance)*norm.ppf([0.025, 0.25, 0.5, 0.75, 0.975], loc=0)
+def get_norm_quantiles(variance, quantiles):
+    return 0 + math.sqrt(variance)*norm.ppf(quantiles, loc=0)
 
 
-def get_norm_quantiles_mean(pair):
+def get_norm_quantiles_mean(pair, quantiles):
     mean, variance = pair
     variance = np.array(variance)
-    return mean + math.sqrt(variance)*norm.ppf([0.025, 0.25, 0.5, 0.75, 0.975], loc=0)
+    return mean + math.sqrt(variance)*norm.ppf(quantiles, loc=0)
 
 
-def get_t_quantiles(tuple):
+def get_t_quantiles(tuple, quantiles):
     t_df, variance, mean_est = tuple
-    return mean_est + math.sqrt(variance) * t.ppf([0.025, 0.25, 0.5, 0.75, 0.975], df=t_df)
+    return mean_est + math.sqrt(variance) * t.ppf(quantiles, df=t_df)
