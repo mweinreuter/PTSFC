@@ -24,11 +24,12 @@ def get_QuantRegVol_forecasts(daxdata=pd.DataFrame(), quantiles=[0.025, 0.25, 0.
 
         name = f'LogRetLag{h}'
         X = pd.DataFrame(
-            daxdata.iloc[:-h][[name, 'intraweek_vol']].copy())
+            daxdata.iloc[:-h][[name, 'intraweek_vol']].copy()).dropna()
         X.insert(0, column='intercept', value=1)
 
-        Y = daxdata[[name]].shift(-h).iloc[:-h].copy()
+        Y = daxdata[[name]].shift(-h).iloc[2:-h].copy()
         Y = Y.rename(columns={name: f"lr{h}daysahead"})
+
         model_qr_temp = sm.QuantReg(endog=Y, exog=X)
 
         R_t = pd.DataFrame(
