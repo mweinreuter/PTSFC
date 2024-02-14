@@ -11,10 +11,10 @@ import numpy as np
 
 def get_weather_data_erfurt():
     weather = pd.read_csv(
-        'C:/Users/Maria/Documents/Studium/Pyhton Projekte/PTSFC/energy_consumption/feature_selection/data/weather_020724.csv')
+        'C:/Users/Maria/Documents/Studium/Pyhton Projekte/PTSFC/energy_consumption/feature_selection/data/weather_021424.csv')
     weather['date'] = pd.to_datetime(
         weather['date'], format='%Y-%m-%d')
-    return weather[['date','tavg', 'wspd']]
+    return weather[['date', 'tavg', 'wspd']]
 
 
 def ec_weather_merge(energydata, weather=pd.DataFrame):

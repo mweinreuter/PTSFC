@@ -5,7 +5,7 @@ import statsmodels.api as sm
 
 from energy_consumption.feature_selection.extract import extract_energy_data, extract_all_features
 from energy_consumption.help_functions import get_forecast_timestamps, create_submission_frame
-from energy_consumption.models.quantreg.functions import get_energy_and_forecast_quantreg
+from energy_consumption.models.quantreg.functions import get_energy_and_forecast_quantreg2
 
 
 def get_QuantRegExLags_forecasts(energydf=np.nan, indexes=[47, 51, 55, 71, 75, 79], quantiles=[0.025, 0.25, 0.5, 0.75, 0.975], abs_eval=False):
@@ -14,7 +14,7 @@ def get_QuantRegExLags_forecasts(energydf=np.nan, indexes=[47, 51, 55, 71, 75, 7
         energydf = extract_energy_data.get_data(num_years=2)
 
     energydata = energydf.copy()
-    energydata, X_pred = get_energy_and_forecast_quantreg(energydata)
+    energydata, X_pred = get_energy_and_forecast_quantreg2(energydata)
 
     X = energydata.drop(columns=['energy_consumption'])
     y = energydata['energy_consumption']
