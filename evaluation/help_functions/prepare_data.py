@@ -51,6 +51,23 @@ def most_recent_wednesday(df, wednesday_morning=False):
     return most_recent_wednesday
 
 
+def most_recent_thursday(df):
+
+    today = df.index.max()
+
+    # Calculate days to the most recent Thursday
+    days_to_thursday = (today.weekday() - 3) % 7
+    recent_thursday = today - \
+        timedelta(days=days_to_thursday,
+                  hours=today.hour, minutes=today.minute)
+
+    # set time to 2:00 pm
+    most_recent_thursday = recent_thursday.replace(
+        hour=14, minute=0, second=0, microsecond=0)
+
+    return most_recent_thursday
+
+
 def next_working_days(start_date, num_days=5):
     """
     Get the next N working days excluding weekends.

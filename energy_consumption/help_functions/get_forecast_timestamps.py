@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 def forecast_timestamps(last_ts, periods=100):

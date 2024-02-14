@@ -51,6 +51,8 @@ def evaluate_energymodel(model, df, last_x=100, years=False, months=False, weeks
             evaluation = pd.DataFrame()
             break
         # pred = model['function'](df_before)
+        if 'date_time' == pred.index.name:            # changed
+            pred = pred.reset_index()  # changed
         obs = pd.DataFrame(                                                                                #
             {'energy_consumption': df.loc[pred['date_time']]['energy_consumption']})
         pred = pred.set_index('date_time')
@@ -64,7 +66,16 @@ def evaluate_energymodel(model, df, last_x=100, years=False, months=False, weeks
             score = evaluate_horizon(quantile_preds, observation)
             merged_df.at[index, 'score'] = score
 
-        print(pred.index)  # delete
+        # add column 'horizon' if not in merged_df
+        if 'horizon' not in merged_df.columns:
+            print('lengths', len(merged_df))
+            calculation_rounds = int(len(merged_df)/6)
+            print(calculation_rounds)
+            horizon_sequence = ['36 hour', '40 hour',
+                                '44 hour', '60 hour',
+                                '64 hour', '68 hour']
+            repeated_horizons = horizon_sequence * calculation_rounds
+            merged_df['horizon'] = repeated_horizons
 
         evaluation = pd.concat([evaluation, merged_df])
 
